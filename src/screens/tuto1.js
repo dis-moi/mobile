@@ -1,72 +1,25 @@
 import React from 'react';
-import { Text, View, Image } from 'react-native';
-
-import Paragraph from '../components/paragraph';
-import Screen from '../components/screen';
+import { View, Image, useWindowDimensions } from 'react-native';
 import Button from '../components/button';
+import Title from '../components/title';
 
-export default function Tuto1({ navigation }) {
+function Tuto1({ navigation }) {
+  const window = useWindowDimensions();
+
   return (
-    <Screen>
-      <View
-        style={{
-          flex: 1,
-          flexDirection: 'column',
-          justifyContent: 'space-around',
-        }}
-      >
-        <Paragraph>
-          Conso, culture, fact-checking, militant.. Les éclaireurs Dismoi vous
-          conseillent et informent lorsque vous naviguez sur le web.
-        </Paragraph>
-        <View
-          style={{
-            flexDirection: 'row',
-            justifyContent: 'space-around',
-            flexWrap: 'wrap',
-          }}
-        >
-          <Image
-            style={{ height: 80, width: 80, margin: 5 }}
-            source={require('../assets/images/quechoisir.png')}
-          />
-          <Image
-            style={{ height: 80, width: 80, margin: 5 }}
-            source={require('../assets/images/lemonde.png')}
-          />
-          <Image
-            style={{ height: 80, width: 80, margin: 5 }}
-            source={require('../assets/images/lesinrocks.png')}
-          />
-          <Image
-            style={{ height: 80, width: 80, margin: 5 }}
-            source={require('../assets/images/60millions.png')}
-          />
-          <Image
-            style={{ height: 80, width: 80, margin: 5 }}
-            source={require('../assets/images/selonMicode.png')}
-          />
-          <Image
-            style={{ height: 80, width: 80, margin: 5 }}
-            source={require('../assets/images/lesNumeriques.png')}
-          />
-          <Image
-            style={{ height: 80, width: 80, margin: 5 }}
-            source={require('../assets/images/wirecutter.png')}
-          />
-        </View>
-        <Text
-          style={{
-            letterSpacing: 0.9,
-            textAlign: 'center',
-            fontFamily: 'Helvetica',
-            color: '#000000',
-            fontSize: 18,
-          }}
-        >
-          Et des dizaines d'autres...
-        </Text>
+    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+      <View style={{ marginBottom: 10 }}>
+        <Title>Comment ça marche ?</Title>
       </View>
+      <Image
+        style={{
+          width: window.width,
+          height: window.height - 250,
+          marginBottom: 20,
+        }}
+        source={require('../assets/images/tuto-2.png')}
+        resizeMode={'contain'}
+      />
       <View
         style={{
           flexDirection: 'column',
@@ -80,6 +33,8 @@ export default function Tuto1({ navigation }) {
           text={'Suivant'}
         />
       </View>
-    </Screen>
+    </View>
   );
 }
+
+export default Tuto1;

@@ -1,8 +1,7 @@
 import React from 'react';
-import { View } from 'react-native';
+import { View, Image } from 'react-native';
 import Title from '../components/title';
 import Paragraph from '../components/paragraph';
-import Italic from '../components/italic';
 import Screen from '../components/screen';
 import Button from '../components/button';
 
@@ -19,17 +18,46 @@ function Welcome({ navigation }) {
         <Title>Merci d'avoir téléchargé l'application DisMoi.</Title>
         <View>
           <Paragraph>
-            Conseils et entraide directement sur les pages web que vous visitez.
+            Grâce aux contributeurs de DisMoi, entrez dans un web plus sûr, plus
+            transparent et plus ouvert aux alternatives.
           </Paragraph>
-          <Paragraph>
-            S'il existe une meilleure alternative, une info éclairante, vous le
-            saurez!
-          </Paragraph>
+          <View
+            style={{
+              flexDirection: 'row',
+              justifyContent: 'space-around',
+              flexWrap: 'wrap',
+            }}
+          >
+            <Image
+              style={{ height: 80, width: 80, margin: 5 }}
+              source={require('../assets/images/quechoisir.png')}
+            />
+            <Image
+              style={{ height: 80, width: 80, margin: 5 }}
+              source={require('../assets/images/lemonde.png')}
+            />
+            <Image
+              style={{ height: 80, width: 80, margin: 5 }}
+              source={require('../assets/images/lesinrocks.png')}
+            />
+            <Image
+              style={{ height: 80, width: 80, margin: 5 }}
+              source={require('../assets/images/60millions.png')}
+            />
+            <Image
+              style={{ height: 80, width: 80, margin: 5 }}
+              source={require('../assets/images/selonMicode.png')}
+            />
+            <Image
+              style={{ height: 80, width: 80, margin: 5 }}
+              source={require('../assets/images/lesNumeriques.png')}
+            />
+            <Image
+              style={{ height: 80, width: 80, margin: 5 }}
+              source={require('../assets/images/wirecutter.png')}
+            />
+          </View>
         </View>
-        <Italic>
-          Gratuit, sans publicité, respecte votre vie privée et ne ralentit pas
-          votre mobile.
-        </Italic>
       </View>
       <View
         style={{
