@@ -105,16 +105,6 @@ const HeadlessTask = async (taskData) => {
     const eventMessageFromChromeURL = taskData.url;
 
     if (eventMessageFromChromeURL) {
-      if (
-        eventMessageFromChromeURL.indexOf(' ') >= 0 ||
-        taskData.eventType === 'TYPE_VIEW_TEXT_CHANGED'
-      ) {
-        FloatingModule.hideFloatingDisMoiBubble().then(() =>
-          FloatingModule.hideFloatingDisMoiMessage()
-        );
-        return;
-      }
-
       if (taskData.eventText === '') {
         let noticeIds = await getNoticeIds(
           eventMessageFromChromeURL,

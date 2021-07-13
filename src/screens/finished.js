@@ -1,5 +1,10 @@
 import React from 'react';
-import { FlatList, View, TouchableOpacity } from 'react-native';
+import {
+  FlatList,
+  View,
+  TouchableOpacity,
+  ActivityIndicator,
+} from 'react-native';
 import { Body, Left, CardItem } from 'native-base';
 import Title from '../components/title';
 import Button from '../components/button';
@@ -166,16 +171,22 @@ function Finished() {
           setRadioButtonThatIsActivated(value);
         }}
       />
-      <FlatList
-        style={{ marginTop: 15 }}
-        data={
-          radioButtonThatIsActivated === 'ALL'
-            ? contributors
-            : filteredContributors.sort((res) => res.contributions)
-        }
-        renderItem={contributorItemFromList}
-        keyExtractor={(item) => String(item.id)}
-      />
+      {contributors.length === 0 && (
+        <ActivityIndicator isVisible size={40} color={'#2855a2'} />
+      )}
+
+      {contributors.length > 0 && (
+        <FlatList
+          style={{ marginTop: 15 }}
+          data={
+            radioButtonThatIsActivated === 'ALL'
+              ? contributors
+              : filteredContributors.sort((res) => res.contributions)
+          }
+          renderItem={contributorItemFromList}
+          keyExtractor={(item) => String(item.id)}
+        />
+      )}
     </View>
   );
 }

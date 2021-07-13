@@ -37,6 +37,8 @@ class BackgroundService : AccessibilityService() {
       bundle.putString("eventText", _eventText)
       bundle.putString("hide", _hide)
 
+      _hide = ""
+
       myIntent.putExtras(bundle)
 
       context.startService(myIntent)
@@ -57,17 +59,20 @@ class BackgroundService : AccessibilityService() {
 
   @RequiresApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
   private fun captureUrl(info: AccessibilityNodeInfo, config: SupportedBrowserConfig): String? {
-    val nodes = info.findAccessibilityNodeInfosByViewId(config.addressBarId)
-    if (nodes == null || nodes.size <= 0) {
-      return null
+    if (chromeWebpageIsRendering(info)) {
+      val nodes = info.findAccessibilityNodeInfosByViewId(config.addressBarId)
+      if (nodes == null || nodes.size <= 0) {
+        return null
+      }
+      val addressBarNodeInfo = nodes[0]
+      var url: String? = null
+      if (addressBarNodeInfo.text != null) {
+        url = addressBarNodeInfo.text.toString()
+      }
+      addressBarNodeInfo.recycle()
+      return url
     }
-    val addressBarNodeInfo = nodes[0]
-    var url: String? = null
-    if (addressBarNodeInfo.text != null) {
-      url = addressBarNodeInfo.text.toString()
-    }
-    addressBarNodeInfo.recycle()
-    return url
+    return null
   }
 
   private fun getEventType(event: AccessibilityEvent): String? {
@@ -96,37 +101,35 @@ class BackgroundService : AccessibilityService() {
     return "com.android.systemui" == packageName || "com.android.launcher3" == packageName
   }
 
-  fun theseEventsNeedToHideTheBubble(event: AccessibilityEvent): Boolean {
-    return getEventType(event) === "TYPE_VIEW_CLICKED" &&
-      event.getClassName() === "android.widget.FrameLayout" ||
-      getEventType(event) === "TYPE_VIEW_CLICKED" &&
-      event.getPackageName() == "com.android.systemui" ||
-      getEventType(event) === "TYPE_VIEW_TEXT_SELECTION_CHANGED" &&
-      event.getPackageName() == "com.android.chrome" ||
-      getEventType(event) === "TYPE_VIEW_CLICKED" &&
-      event.getPackageName() == "com.android.chrome"
+  private fun chromeWebpageIsRendering(info: AccessibilityNodeInfo): Boolean {
+    return info.childCount > 0 && 
+      info.getChild(0).className.toString() == "android.widget.LinearLayout" && 
+      info.childCount > 1 && 
+      info.getChild(1).className.toString() != "android.widget.EditText"
   }
 
   @RequiresApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
   override fun onAccessibilityEvent(event: AccessibilityEvent) {
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
       if (canDrawOverlays(applicationContext)) {
-        if (theseEventsNeedToHideTheBubble(event)) {
-          _hide = "true"
-          _url = ""
-          _eventType = getEventType(event)
-          _className = event.getClassName().toString()
-          _packageName = event.getPackageName().toString()
-          _eventText = getEventText(event)
-          handler.post(runnableCode)
-          return
-        }
-
-        if (event!!.getPackageName() != null) {
-          if (!isLauncherPackage(event!!.getPackageName())) {
-            val parentNodeInfo = event.source ?: return
-            val packageName = event.packageName.toString()
-            var browserConfig: SupportedBrowserConfig? = null
+        if (
+          event.getClassName() != null && 
+          event!!.getPackageName() != null && 
+          !isLauncherPackage(event!!.getPackageName())
+        ) {
+          if (event.getClassName().toString() == "com.android.inputmethod.keyboard.Key") {
+            _hide = "true"
+            _url = ""
+            _eventType = getEventType(event)
+            _className = event.getClassName().toString()
+            _packageName = event.getPackageName().toString()
+            _eventText = getEventText(event)
+            handler.post(runnableCode)
+            return
+          }
+          val parentNodeInfo = event.source ?: return
+          val packageName = event.packageName.toString()
+          var browserConfig: SupportedBrowserConfig? = null
 
             for (supportedConfig in getSupportedBrowsers()) {
               if (supportedConfig.packageName == packageName) {
@@ -171,23 +174,13 @@ class BackgroundService : AccessibilityService() {
               }
             }
           }
-
         }
-
       }
     }
   }
 
   override fun onInterrupt() {
     sendEventFromAccessibilityServicePermission("false");
-  }
-
-  private fun packageNames(): Array<String> {
-    val packageNames: MutableList<String> = ArrayList()
-    for (config in getSupportedBrowsers()) {
-      packageNames.add(config.packageName)
-    }
-    return packageNames.toTypedArray()
   }
 
   private class SupportedBrowserConfig(var packageName: String, var addressBarId: String)

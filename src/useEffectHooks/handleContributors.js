@@ -19,6 +19,8 @@ function HandleContributorsEffect(
   }
 
   React.useEffect(() => {
+    let cancelled = false;
+
     async function getContributors() {
       SharedPreferences.getAll(async function (values) {
         const ids = [
@@ -48,14 +50,25 @@ function HandleContributorsEffect(
             ids.includes(String(contributor.id))
           )
         );
-        setContributors([...contributorsFollowedSorted, ...contributorsSorted]);
-        setItemIds(ids);
+        if (!cancelled) {
+          setContributors([
+            ...contributorsFollowedSorted,
+            ...contributorsSorted,
+          ]);
+          setItemIds(ids);
+        }
       });
     }
     getContributors();
+
+    return () => {
+      cancelled = true;
+    };
   }, [radioButtonThatIsActivated, setItemIds]);
 
   React.useEffect(() => {
+    let cancelled = false;
+
     if (radioButtonThatIsActivated !== 'ALL') {
       const filteredContributorsByCategories = contributors.filter((res) =>
         res.categories.includes(radioButtonThatIsActivated)
@@ -72,11 +85,16 @@ function HandleContributorsEffect(
         )
       );
 
-      setFilteredContributors([
-        ...contributorsFollowedSorted,
-        ...contributorsSorted,
-      ]);
+      if (!cancelled) {
+        setFilteredContributors([
+          ...contributorsFollowedSorted,
+          ...contributorsSorted,
+        ]);
+      }
     }
+    return () => {
+      cancelled = true;
+    };
   }, [radioButtonThatIsActivated, contributors, itemIds]);
 
   React.useEffect(() => {
