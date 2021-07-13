@@ -38,6 +38,24 @@ function Authorizations({ navigation }) {
           d'interagir avec votre navigateur.
         </Paragraph>
         <View>
+          <ListItem icon style={{ marginTop: 15 }}>
+            <Body>
+              <SimpleText left letterSpacing={0.9} fontSize={14}>
+                Superposition
+              </SimpleText>
+            </Body>
+            <Right>
+              <Switch
+                onValueChange={() => {
+                  Background.redirectToAppAdvancedSettings().then(() => {});
+                }}
+                style={{ transform: [{ scaleX: 1.6 }, { scaleY: 1.5 }] }}
+                trackColor={{ false: '#767577', true: '#2855a2' }}
+                thumbColor={'#f4f3f4'}
+                value={canDrawOverlayIsChecked}
+              />
+            </Right>
+          </ListItem>
           <ListItem icon style={{ marginBottom: 15 }}>
             <Body>
               <SimpleText left letterSpacing={0.9} fontSize={14}>
@@ -55,24 +73,6 @@ function Authorizations({ navigation }) {
                   );
                 }}
                 value={accessibilityServiceIsEnabled}
-              />
-            </Right>
-          </ListItem>
-          <ListItem icon style={{ marginTop: 15 }}>
-            <Body>
-              <SimpleText left letterSpacing={0.9} fontSize={14}>
-                Superposition
-              </SimpleText>
-            </Body>
-            <Right>
-              <Switch
-                onValueChange={() => {
-                  Background.redirectToAppAdvancedSettings().then(() => {});
-                }}
-                style={{ transform: [{ scaleX: 1.6 }, { scaleY: 1.5 }] }}
-                trackColor={{ false: '#767577', true: '#2855a2' }}
-                thumbColor={'#f4f3f4'}
-                value={canDrawOverlayIsChecked}
               />
             </Right>
           </ListItem>
