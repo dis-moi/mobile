@@ -2,22 +2,7 @@
 <resources>
   <string name="app_name">DisMoi</string>
   <string name="accessibility_service_label">DisMoi</string>
-  <string name="accessibility_service_description">Dismoi allows web users, experts, and media to post information directly on any page you browse.\n\n
-For instance :\n
-- warning you about scams  on websites you visit\n
-- suggesting a better choice than the product what you are checking about\n
-- providing insights about an article you are reading\n
-- etc.\n\n
-
-This way, you receive their advice and information at the moment you need it.\n\n
-
-Dismoi is a free web extension that anybody can add to their web browser (currently Chrome and Firefox)
-Thanks to this extension, everyone can post information on the webpages they want.
-If you follow a contributor, his information messages are displayed at the time you visit the pages he has commented on.\n\n
-
-Freedom of information : You receive only the information of contributors you have chosen.\n\n
-
-Each Dismoi user can also ask a question about the web page they are visiting, to which contributors may respond to.</string>
+  <string name="accessibility_service_description">Dismoi utilise le service d&#x2019;accessibilit&#x00E9; d&#x2019;Android dans le but d&#x2019;afficher les contributions sur les pages web visit&#x00E9;es avec votre navigateur mobile.\n\nDismoi n&#x2019;observe pas le texte que vous saisissez et n&#x2019;exploite ni ne revend aucune donn&#x00E9;e personnelle.</string>
   <string name="dis_moi_logo">DisMoi logo</string>
   <string name="trash">Trash the icon</string>
   <string name="close_dis_moi_content_message_button">Close button</string>
