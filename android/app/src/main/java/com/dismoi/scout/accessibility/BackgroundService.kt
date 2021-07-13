@@ -48,14 +48,13 @@ class BackgroundService : AccessibilityService() {
 
   private val previousUrlDetections: HashMap<String, Long> = HashMap()
 
+  @RequiresApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
   override fun onServiceConnected() {
     val info = serviceInfo
 
     info.notificationTimeout = NOTIFICATION_TIMEOUT
 
     this.serviceInfo = info
-
-    sendEventFromAccessibilityServicePermission("true")
   }
 
   @RequiresApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
@@ -132,47 +131,47 @@ class BackgroundService : AccessibilityService() {
           val packageName = event.packageName.toString()
           var browserConfig: SupportedBrowserConfig? = null
 
-          for (supportedConfig in getSupportedBrowsers()) {
-            if (supportedConfig.packageName == packageName) {
-              browserConfig = supportedConfig
+            for (supportedConfig in getSupportedBrowsers()) {
+              if (supportedConfig.packageName == packageName) {
+                browserConfig = supportedConfig
+              }
             }
-          }
 
-          // this is not supported browser, so exit
-          if (browserConfig == null) {
-            return
-          }
+            // this is not supported browser, so exit
+            if (browserConfig == null) {
+              return
+            }
+            if (AccessibilityEvent.eventTypeToString(event.getEventType()).contains("WINDOW")) {
 
-          val nodeInfo = event.source
-          
-          val capturedUrl = captureUrl(nodeInfo, browserConfig)
+              val capturedUrl = captureUrl(parentNodeInfo, browserConfig)
 
-          parentNodeInfo.recycle()
+              // we can't find an url. Browser either was updated or opened page without url text field
+              if (capturedUrl == null) {
+                return
+              }
 
-          // we can't find an url. Browser either was updated or opened page without url text field
-          if (capturedUrl == null ) {
-            return
-          }
+              parentNodeInfo.recycle()
 
-          val eventTime = event.eventTime
-          val detectionId = "$packageName"
-          val lastRecordedTime =
-            if (previousUrlDetections.containsKey(detectionId)) {
-              previousUrlDetections[detectionId]!!
-            } else 0.toLong()
+              val eventTime = event.eventTime
+              val detectionId = "$packageName"
+              val lastRecordedTime =
+                if (previousUrlDetections.containsKey(detectionId)) {
+                  previousUrlDetections[detectionId]!!
+                } else 0.toLong()
 
-          // some kind of redirect throttling
-          if (eventTime - lastRecordedTime > NOTIFICATION_TIMEOUT) {
-            previousUrlDetections[detectionId] = eventTime
+              // some kind of redirect throttling
+              if (eventTime - lastRecordedTime > NOTIFICATION_TIMEOUT) {
+                Log.d("Notification", "POST WITH URL")
+                previousUrlDetections[detectionId] = eventTime
 
-            if (_url != capturedUrl) {
-              _url = capturedUrl
-              _eventType = getEventType(event)
-              _className = event.getClassName().toString()
-              _packageName = event.getPackageName().toString()
-              _eventText = getEventText(event)
-
-              handler.post(runnableCode)
+                _url = capturedUrl
+                _eventType = getEventType(event)
+                _className = event.getClassName().toString()
+                _packageName = event.getPackageName().toString()
+                _eventText = getEventText(event)
+                _hide = "false"
+                handler.post(runnableCode)
+              }
             }
           }
         }

@@ -1,4 +1,4 @@
-import { FloatingModule } from '../nativeModules/get';
+import { Background, FloatingModule } from '../nativeModules/get';
 import { DeviceEventEmitter } from 'react-native';
 import { Linking } from 'react-native';
 
@@ -8,23 +8,29 @@ import SharedPreferences from 'react-native-shared-preferences';
 
 import 'moment/min/locales';
 
-function getNoticeIds(matchingContexts, eventMessageFromChromeURL) {
-  return matchingContexts
-    .map((res) => {
-      const addWWWForBuildingURL = `www.${eventMessageFromChromeURL}`;
+async function getNoticeIds(eventMessageFromChromeURL, matchingContexts, HTML) {
+  const noticeIds = [];
+  for (const matchingContext of matchingContexts) {
+    const addWWWForBuildingURL = `www.${eventMessageFromChromeURL}`;
 
-      if (res.xpath) {
-        return;
-      }
+    if (addWWWForBuildingURL.match(new RegExp(matchingContext.urlRegex, 'g'))) {
+      if (matchingContext.xpath) {
+        const result = await Background.testWithXpath(
+          HTML,
+          matchingContext.xpath
+        );
 
-      if (addWWWForBuildingURL.match(new RegExp(res.urlRegex, 'g'))) {
-        return res.noticeId;
+        if (result === 'true') {
+          noticeIds.push(matchingContext.noticeId);
+        }
+        continue;
       }
-    })
-    .filter(Boolean);
+      noticeIds.push(matchingContext.noticeId);
+    }
+  }
+
+  return noticeIds;
 }
-
-let matchingContexts = [];
 
 function callActionListeners() {
   DeviceEventEmitter.addListener('floating-dismoi-bubble-press', (e) => {
@@ -59,15 +65,22 @@ let matchingContextFetchApi =
 async function callMatchingContext(savedUrlMatchingContext) {
   console.log('_________________CALL MATHING CONTEXT____________________');
 
-  console.log(matchingContextFetchApi + savedUrlMatchingContext);
+  return await fetch(matchingContextFetchApi + savedUrlMatchingContext).then(
+    (response) => {
+      console.log(
+        '_________________END CALL MATHING CONTEXT____________________'
+      );
+      return response.json();
+    }
+  );
+}
 
-  matchingContexts = await fetch(
-    matchingContextFetchApi + savedUrlMatchingContext
-  ).then((response) => {
-    console.log(
-      '_________________END CALL MATHING CONTEXT____________________'
-    );
-    return response.json();
+async function getHTMLOfCurrentChromeURL(eventMessageFromChromeURL) {
+  return await fetch(`http://www.${eventMessageFromChromeURL}`).then(function (
+    response
+  ) {
+    // The API call was successful!
+    return response.text();
   });
 }
 
@@ -75,7 +88,13 @@ const HeadlessTask = async (taskData) => {
   SharedPreferences.getItem('url', async function (savedUrlMatchingContext) {
     callActionListeners();
     FloatingModule.initialize();
-    await callMatchingContext(savedUrlMatchingContext);
+    const res = await Promise.all([
+      await callMatchingContext(savedUrlMatchingContext),
+      await getHTMLOfCurrentChromeURL(taskData.url),
+    ]);
+
+    const matchingContexts = res[0];
+    const HTML = res[1];
 
     if (taskData.hide === 'true') {
       FloatingModule.hideFloatingDisMoiBubble().then(() =>
@@ -87,13 +106,16 @@ const HeadlessTask = async (taskData) => {
 
     if (eventMessageFromChromeURL) {
       if (taskData.eventText === '') {
-        const noticeIds = getNoticeIds(
+        let noticeIds = await getNoticeIds(
+          eventMessageFromChromeURL,
           matchingContexts,
-          eventMessageFromChromeURL
+          HTML
         );
 
+        const uniqueIds = [...new Set(noticeIds)];
+
         let notices = await Promise.all(
-          noticeIds.map((noticeId) =>
+          uniqueIds.map((noticeId) =>
             fetch(
               `https://notices.bulles.fr/api/v3/notices/${noticeId}`
             ).then((response) => response.json())
@@ -114,7 +136,9 @@ const HeadlessTask = async (taskData) => {
             notices.length,
             noticesToShow,
             eventMessageFromChromeURL
-          ).then(() => {});
+          ).then(() => {
+            noticeIds = [];
+          });
         }
       }
     }
