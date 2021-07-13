@@ -1,27 +1,5 @@
-<!-- <accessibility-service xmlns:android="http://schemas.android.com/apk/res/android"
-  android:description="@string/accessibility_service_description"
-  android:accessibilityEventTypes="typeAllMask|typeContextClicked|typeViewClicked"
-  android:accessibilityFlags="flagRequestFilterKeyEvents|flagDefault|flagIncludeNotImportantViews|flagRequestTouchExplorationMode|flagRequestEnhancedWebAccessibility|flagReportViewIds|flagRetrieveInteractiveWindows"
-  android:accessibilityFeedbackType="feedbackAllMask"
-  android:notificationTimeout="50"
-  android:canRetrieveWindowContent="true"
-  android:canRequestFilterKeyEvents="true"
-  android:settingsActivity="com.example.android.accessibility.ServiceSettingsActivity"
-/> -->
-
-<!-- <accessibility-service
-  xmlns:android="http://schemas.android.com/apk/res/android"
-  android:description="@string/accessibility_service_description"
-  android:canRetrieveWindowContent="true"
-  android:settingsActivity=".ServiceSettingsActivity" /> -->
-
-<accessibility-service xmlns:android="http://schemas.android.com/apk/res/android"
-  android:description="@string/accessibility_service_description"
-  android:accessibilityEventTypes="typeAllMask"
-  android:accessibilityFeedbackType="feedbackAllMask"
-  android:canRequestTouchExplorationMode="true"
-  android:canRequestEnhancedWebAccessibility="true"
-  android:canRequestFilterKeyEvents="true"
-  android:canRetrieveWindowContent="true"
-  android:accessibilityFlags="flagDefault|flagIncludeNotImportantViews|flagReportViewIds|flagRequestEnhancedWebAccessibility|flagRequestFilterKeyEvents|flagRetrieveInteractiveWindows" />
-
+<accessibility-service
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:description="@string/accessibility_service_description"
+    android:canRetrieveWindowContent="true"
+    android:settingsActivity=".ServiceSettingsActivity" />

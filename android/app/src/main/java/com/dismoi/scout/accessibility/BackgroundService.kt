@@ -1,6 +1,7 @@
 package com.dismoi.scout.accessibility
 
 import android.accessibilityservice.AccessibilityService
+import android.accessibilityservice.AccessibilityServiceInfo
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
@@ -51,6 +52,13 @@ class BackgroundService : AccessibilityService() {
   @RequiresApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
   override fun onServiceConnected() {
     val info = serviceInfo
+
+    info.eventTypes = AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED
+    info.packageNames = packageNames()
+    info.feedbackType = AccessibilityServiceInfo.FEEDBACK_VISUAL
+    info.notificationTimeout = 300
+    info.flags = AccessibilityServiceInfo.FLAG_REPORT_VIEW_IDS or
+      AccessibilityServiceInfo.FLAG_RETRIEVE_INTERACTIVE_WINDOWS
 
     info.notificationTimeout = NOTIFICATION_TIMEOUT
 
@@ -110,6 +118,7 @@ class BackgroundService : AccessibilityService() {
 
   @RequiresApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
   override fun onAccessibilityEvent(event: AccessibilityEvent) {
+
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
       if (canDrawOverlays(applicationContext)) {
         if (
