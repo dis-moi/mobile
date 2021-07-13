@@ -8,18 +8,26 @@ function CheckIfCanDrawOverlayIsEnabledEffect(appState) {
   ] = React.useState(false);
 
   React.useEffect(() => {
+    let cancelled = false;
+
     function callCheckIfOverlayEnabledMethod() {
       Background.canDrawOverlay((result) => {
-        if (result === '1') {
-          setCanDrawOverlayServiceEnabled(true);
-        }
-        if (result === '0') {
-          setCanDrawOverlayServiceEnabled(false);
+        if (!cancelled) {
+          if (result === '1') {
+            setCanDrawOverlayServiceEnabled(true);
+          }
+          if (result === '0') {
+            setCanDrawOverlayServiceEnabled(false);
+          }
         }
       });
     }
 
     callCheckIfOverlayEnabledMethod();
+
+    return () => {
+      cancelled = true;
+    };
   }, [appState]);
 
   return canDrawOverlayServiceEnabled;

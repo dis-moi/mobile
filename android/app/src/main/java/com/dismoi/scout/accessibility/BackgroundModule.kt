@@ -8,7 +8,13 @@ import android.os.Bundle
 import android.provider.Settings
 import com.facebook.react.bridge.*
 import com.facebook.react.modules.core.DeviceEventManagerModule
+import org.htmlcleaner.CleanerProperties
+import org.htmlcleaner.DomSerializer
+import org.htmlcleaner.HtmlCleaner
 import javax.annotation.Nonnull
+import javax.xml.xpath.XPath
+import javax.xml.xpath.XPathConstants
+import javax.xml.xpath.XPathFactory
 
 class BackgroundModule(@Nonnull reactContext: ReactApplicationContext) :
   ReactContextBaseJavaModule(reactContext) {
@@ -83,6 +89,26 @@ class BackgroundModule(@Nonnull reactContext: ReactApplicationContext) :
     val currentActivity = currentActivity
     currentActivity!!.startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
     promise.resolve("")
+  }
+
+  @ReactMethod
+  fun testWithXpath(htmlString: String, xPathParser: String, promise: Promise) {
+    // create an instance of HtmlCleaner
+    val tagNode = HtmlCleaner().clean(
+      htmlString
+    )
+    val doc = DomSerializer(
+      CleanerProperties()
+    ).createDOM(tagNode)
+
+    val xpath: XPath = XPathFactory.newInstance().newXPath()
+
+    val str = xpath.evaluate(
+      xPathParser,
+      doc, XPathConstants.STRING
+    ) as String
+
+    promise.resolve(str)
   }
 
   @ReactMethod
