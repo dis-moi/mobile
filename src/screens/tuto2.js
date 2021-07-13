@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Image, useWindowDimensions } from 'react-native';
-import Button from '../components/button';
 import Title from '../components/title';
+import Button from '../components/button';
 
 function Tuto2({ navigation }) {
   const window = useWindowDimensions();
@@ -17,7 +17,7 @@ function Tuto2({ navigation }) {
           height: window.height - 250,
           marginBottom: 20,
         }}
-        source={require('../assets/images/tuto-2.png')}
+        source={require('../assets/images/tuto-3.png')}
         resizeMode={'contain'}
       />
       <View
@@ -28,7 +28,7 @@ function Tuto2({ navigation }) {
       >
         <Button
           onPress={() => {
-            return navigation.navigate('Tuto3');
+            return navigation.navigate('Authorizations');
           }}
           text={'Suivant'}
         />

@@ -8,7 +8,6 @@ import {
 import Welcome from '../screens/welcome';
 import Tuto1 from '../screens/tuto1';
 import Tuto2 from '../screens/tuto2';
-import Tuto3 from '../screens/tuto3';
 import Finished from '../screens/finished';
 import Authorizations from '../screens/authorizations';
 import stackScreenOptions from './stackScreenOptions';
@@ -39,11 +38,6 @@ function StartOnboarding() {
         <Stack.Screen
           name="Tuto2"
           component={Tuto2}
-          options={stackScreenOptions()}
-        />
-        <Stack.Screen
-          name="Tuto3"
-          component={Tuto3}
           options={stackScreenOptions()}
         />
         <Stack.Screen
