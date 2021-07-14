@@ -2,12 +2,12 @@ package com.dismoi.scout.accessibility
 
 import android.accessibilityservice.AccessibilityService
 import android.accessibilityservice.AccessibilityServiceInfo
+import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.provider.Settings.canDrawOverlays
-import android.util.Log
 import android.view.accessibility.AccessibilityEvent
 import android.view.accessibility.AccessibilityNodeInfo
 import androidx.annotation.RequiresApi
@@ -38,8 +38,6 @@ class BackgroundService : AccessibilityService() {
       bundle.putString("eventText", _eventText)
       bundle.putString("hide", _hide)
 
-      _hide = ""
-
       myIntent.putExtras(bundle)
 
       context.startService(myIntent)
@@ -54,9 +52,7 @@ class BackgroundService : AccessibilityService() {
     val info = serviceInfo
 
     info.eventTypes = AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED
-    info.packageNames = packageNames()
     info.feedbackType = AccessibilityServiceInfo.FEEDBACK_VISUAL
-    info.notificationTimeout = 300
     info.flags = AccessibilityServiceInfo.FLAG_REPORT_VIEW_IDS or
       AccessibilityServiceInfo.FLAG_RETRIEVE_INTERACTIVE_WINDOWS
 
@@ -67,123 +63,98 @@ class BackgroundService : AccessibilityService() {
 
   @RequiresApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
   private fun captureUrl(info: AccessibilityNodeInfo, config: SupportedBrowserConfig): String? {
-    if (chromeWebpageIsRendering(info)) {
-      val nodes = info.findAccessibilityNodeInfosByViewId(config.addressBarId)
-      if (nodes == null || nodes.size <= 0) {
-        return null
-      }
-      val addressBarNodeInfo = nodes[0]
-      var url: String? = null
-      if (addressBarNodeInfo.text != null) {
-        url = addressBarNodeInfo.text.toString()
-      }
-      addressBarNodeInfo.recycle()
-      return url
+    val nodes = info.findAccessibilityNodeInfosByViewId(config.addressBarId)
+    if (nodes == null || nodes.size <= 0) {
+      return null
     }
-    return null
-  }
-
-  private fun getEventType(event: AccessibilityEvent): String? {
-    when (event.eventType) {
-      AccessibilityEvent.TYPE_NOTIFICATION_STATE_CHANGED -> return "TYPE_NOTIFICATION_STATE_CHANGED"
-      AccessibilityEvent.TYPE_VIEW_CLICKED -> return "TYPE_VIEW_CLICKED"
-      AccessibilityEvent.TYPE_VIEW_FOCUSED -> return "TYPE_VIEW_FOCUSED"
-      AccessibilityEvent.TYPE_VIEW_LONG_CLICKED -> return "TYPE_VIEW_LONG_CLICKED"
-      AccessibilityEvent.TYPE_VIEW_SELECTED -> return "TYPE_VIEW_SELECTED"
-      AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED -> return "TYPE_WINDOW_STATE_CHANGED"
-      AccessibilityEvent.TYPE_VIEW_TEXT_CHANGED -> return "TYPE_VIEW_TEXT_CHANGED"
-      AccessibilityEvent.TYPE_VIEW_TEXT_SELECTION_CHANGED -> return "TYPE_VIEW_TEXT_SELECTION_CHANGED"
+    val addressBarNodeInfo = nodes[0]
+    var url: String? = null
+    if (addressBarNodeInfo.text != null) {
+      url = addressBarNodeInfo.text.toString()
     }
-    return "default"
-  }
-
-  private fun getEventText(event: AccessibilityEvent): String? {
-    val sb = StringBuilder()
-    for (s in event.text) {
-      sb.append(s)
-    }
-    return sb.toString()
+    addressBarNodeInfo.recycle()
+    return url
   }
 
   fun isLauncherPackage(packageName: CharSequence): Boolean {
     return "com.android.systemui" == packageName || "com.android.launcher3" == packageName
   }
 
-  private fun chromeWebpageIsRendering(info: AccessibilityNodeInfo): Boolean {
-    return info.childCount > 0 && 
-      info.getChild(0).className.toString() == "android.widget.LinearLayout" && 
-      info.childCount > 1 && 
-      info.getChild(1).className.toString() != "android.widget.EditText"
+  private fun outsideChrome(info: AccessibilityNodeInfo): Boolean {
+    return info.childCount > 0 &&
+      info.className.toString() == "android.widget.FrameLayout" &&
+      info.getChild(0).className.toString() == "android.view.View"
+  }
+
+  private fun chromeSearchBarEditingIsActivated(info: AccessibilityNodeInfo): Boolean {
+    return info.childCount > 0 &&
+      info.className.toString() == "android.widget.FrameLayout" &&
+      info.getChild(0).className.toString() == "android.widget.EditText"
+  }
+
+  private fun overlayIsActivated(applicationContext: Context): Boolean {
+    return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+      canDrawOverlays(applicationContext)
+    } else {
+      false
+    }
+  }
+
+  private fun isWindowChangeEvent(event: AccessibilityEvent): Boolean {
+    return AccessibilityEvent.eventTypeToString(event.getEventType()).contains("WINDOW")
   }
 
   @RequiresApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
   override fun onAccessibilityEvent(event: AccessibilityEvent) {
+    val parentNodeInfo = event.source ?: return
 
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-      if (canDrawOverlays(applicationContext)) {
-        if (
-          event.getClassName() != null && 
-          event!!.getPackageName() != null && 
-          !isLauncherPackage(event!!.getPackageName())
-        ) {
-          if (event.getClassName().toString() == "com.android.inputmethod.keyboard.Key") {
-            _hide = "true"
-            _url = ""
-            _eventType = getEventType(event)
-            _className = event.getClassName().toString()
-            _packageName = event.getPackageName().toString()
-            _eventText = getEventText(event)
-            handler.post(runnableCode)
-            return
-          }
-          val parentNodeInfo = event.source ?: return
-          val packageName = event.packageName.toString()
-          var browserConfig: SupportedBrowserConfig? = null
+    if (overlayIsActivated(applicationContext) && isWindowChangeEvent(event)) {
+      if (outsideChrome(parentNodeInfo)) {
+        _hide = "true"
+        handler.post(runnableCode)
+        return
+      }
+      val packageName = event.packageName.toString()
+      var browserConfig: SupportedBrowserConfig? = null
 
-            for (supportedConfig in getSupportedBrowsers()) {
-              if (supportedConfig.packageName == packageName) {
-                browserConfig = supportedConfig
-              }
-            }
-
-            // this is not supported browser, so exit
-            if (browserConfig == null) {
-              return
-            }
-            if (AccessibilityEvent.eventTypeToString(event.getEventType()).contains("WINDOW")) {
-
-              val capturedUrl = captureUrl(parentNodeInfo, browserConfig)
-
-              // we can't find an url. Browser either was updated or opened page without url text field
-              if (capturedUrl == null) {
-                return
-              }
-
-              parentNodeInfo.recycle()
-
-              val eventTime = event.eventTime
-              val detectionId = "$packageName"
-              val lastRecordedTime =
-                if (previousUrlDetections.containsKey(detectionId)) {
-                  previousUrlDetections[detectionId]!!
-                } else 0.toLong()
-
-              // some kind of redirect throttling
-              if (eventTime - lastRecordedTime > NOTIFICATION_TIMEOUT) {
-                Log.d("Notification", "POST WITH URL")
-                previousUrlDetections[detectionId] = eventTime
-
-                _url = capturedUrl
-                _eventType = getEventType(event)
-                _className = event.getClassName().toString()
-                _packageName = event.getPackageName().toString()
-                _eventText = getEventText(event)
-                _hide = "false"
-                handler.post(runnableCode)
-              }
-            }
-          }
+      for (supportedConfig in getSupportedBrowsers()) {
+        if (supportedConfig.packageName == packageName) {
+          browserConfig = supportedConfig
         }
+      }
+
+      // this is not supported browser, so exit
+      if (browserConfig == null) {
+        return
+      }
+      val eventTime = event.eventTime
+      val detectionId = "$packageName"
+      val lastRecordedTime =
+      if (previousUrlDetections.containsKey(detectionId)) {
+        previousUrlDetections[detectionId]!!
+      } else 0.toLong()
+      if (eventTime - lastRecordedTime > NOTIFICATION_TIMEOUT) {
+        previousUrlDetections[detectionId] = eventTime
+
+        val capturedUrl = captureUrl(parentNodeInfo, browserConfig)
+
+        if (chromeSearchBarEditingIsActivated(parentNodeInfo)) {
+          _hide = "true"
+          handler.post(runnableCode)
+          return
+        }
+
+        if (capturedUrl == null) {
+          return
+        }
+
+        _url = capturedUrl
+        _hide = "false"
+        handler.post(runnableCode)
+
+        parentNodeInfo.recycle()
+
+        return
       }
     }
   }
