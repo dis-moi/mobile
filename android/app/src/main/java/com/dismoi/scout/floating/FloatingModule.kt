@@ -221,9 +221,6 @@ class FloatingModule(
   }
 
   private fun removeDisMoiBubble() {
-    Log.d("Notification", "TEST DISMOI BUBBLE")
-    Log.d("Notification", bubbleDisMoiView.toString())
-
     if (bubbleDisMoiView != null) {
       bubblesManager!!.removeBubble(bubbleDisMoiView)
       bubbleDisMoiView = null
