@@ -105,13 +105,13 @@ class FloatingModule(
   }
 
   @ReactMethod
-  fun showFloatingDisMoiMessage(x: Int, y: Int, promise: Promise) {
+  fun showFloatingDisMoiMessage(y: Int, promise: Promise) {
 
     if (messageDisMoiView == null) {
       try {
         removeDisMoiBubble()
 
-        addNewFloatingDisMoiMessage(x, y)
+        addNewFloatingDisMoiMessage(y)
         promise.resolve("")
       } catch (e: Exception) {
         promise.reject("0", "")
@@ -127,7 +127,7 @@ class FloatingModule(
   }
 
   @ReactMethod
-  fun openLink(url: String, promise: Promise) {
+  fun openLink(url: String) {
     val sharingIntent = Intent(Intent.ACTION_VIEW)
     sharingIntent.data = Uri.parse(url)
     sharingIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
@@ -172,7 +172,7 @@ class FloatingModule(
     movementMethod = LinkMovementMethod.getInstance()
   }
 
-  private fun addNewFloatingDisMoiMessage(x: Int, y: Int) {
+  private fun addNewFloatingDisMoiMessage(y: Int) {
 
     if (messageIsInitialized == true) {
       messageDisMoiView = LayoutInflater.from(reactContext).inflate(
@@ -183,16 +183,16 @@ class FloatingModule(
         R.id.carouselView
       ) as CarouselView
 
-      carouselView!!.pageCount = _size
+      carouselView.pageCount = _size
 
-      carouselView!!.setViewListener(viewListener)
+      carouselView.setViewListener(viewListener)
 
       val imageButton = messageDisMoiView!!.findViewById<View>(R.id.close) as ImageButton
       imageButton.setOnClickListener {
         sendEventToReactNative("floating-dismoi-message-press", "")
       }
 
-      messagesManager!!.addDisMoiMessage(messageDisMoiView!!, x, y)
+      messagesManager!!.addDisMoiMessage(messageDisMoiView!!, y)
     }
   }
 
@@ -257,9 +257,9 @@ class FloatingModule(
 
       var disMoiContributorNameMap: ReadableMap? = message!!.getMap("contributor")
 
-      var url: String? = disMoiContributorNameMap!!.getMap("avatar")!!.getMap("normal")!!.getString("url");
+      var url: String? = disMoiContributorNameMap!!.getMap("avatar")!!.getMap("normal")!!.getString("url")
 
-      var modified: String? = message!!.getString("modified");
+      var modified: String? = message.getString("modified")
 
       var disMoiContributorName: String? = disMoiContributorNameMap.getString("name")
 
@@ -270,29 +270,29 @@ class FloatingModule(
       val type = Typeface.createFromAsset(reactContext.assets, "fonts/Helvetica.ttf")
 
       val typeBold = Typeface.createFromAsset(reactContext.assets, "fonts/Helvetica-Bold.ttf")
-      var textView: TextView? = customView!!.findViewById(R.id.link)
+      var textView: TextView? = customView.findViewById(R.id.link)
 
-      textView!!.setTypeface(type);
+      textView!!.typeface = type
 
-      textView!!.text = disMoiMessage!!.toSpanned()
+      textView.text = disMoiMessage!!.toSpanned()
 
-      var textViewContributorName: TextView? = customView!!.findViewById(R.id.name)
+      var textViewContributorName: TextView? = customView.findViewById(R.id.name)
 
-      textViewContributorName!!.setTypeface(typeBold);
+      textViewContributorName!!.typeface = typeBold
 
-      var textViewDate: TextView? = customView!!.findViewById(R.id.date)
+      var textViewDate: TextView? = customView.findViewById(R.id.date)
 
-      textViewDate!!.setTypeface(typeBold);
+      textViewDate!!.typeface = typeBold
 
-      textViewContributorName!!.text = disMoiContributorName
+      textViewContributorName.text = disMoiContributorName
 
-      textViewDate!!.text = modified
+      textViewDate.text = modified
 
-      textView!!.handleUrlClicks { url ->
-        sendEventToReactNative("URL_CLICK_LINK", Uri.parse(url).toString())
+      textView.handleUrlClicks { urlLinkToClick ->
+        sendEventToReactNative("URL_CLICK_LINK", Uri.parse(urlLinkToClick).toString())
       }
 
-      val imageView: ImageView = customView!!.findViewById(R.id.contributorProfile) as ImageView
+      val imageView: ImageView = customView.findViewById(R.id.contributorProfile) as ImageView
 
       Glide.with(reactContext)
         .load<Any>(url)

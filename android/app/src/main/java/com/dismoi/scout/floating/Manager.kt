@@ -52,9 +52,9 @@ class Manager private constructor(private val context: Context) {
     }
   }
 
-  fun addDisMoiMessage(message: Message?, x: Int, y: Int) {
+  fun addDisMoiMessage(message: Message?, y: Int) {
     if (bounded) {
-      bubblesService!!.addDisMoiMessage(message, x, y)
+      bubblesService!!.addDisMoiMessage(message, y)
     }
   }
 
