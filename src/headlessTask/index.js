@@ -8,6 +8,8 @@ import SharedPreferences from 'react-native-shared-preferences';
 
 import 'moment/min/locales';
 
+let _notices = [];
+
 async function getNoticeIds(eventMessageFromChromeURL, matchingContexts, HTML) {
   const noticeIds = [];
   for (const matchingContext of matchingContexts) {
@@ -34,14 +36,19 @@ async function getNoticeIds(eventMessageFromChromeURL, matchingContexts, HTML) {
 
 function callActionListeners() {
   DeviceEventEmitter.addListener('floating-dismoi-bubble-press', (e) => {
-    return FloatingModule.showFloatingDisMoiMessage(0, 1500).then(() => {
+    return FloatingModule.showFloatingDisMoiMessage(
+      _notices,
+      1500,
+      _notices.length
+    ).then(() => {
       // What to do when user press on the bubble
-      console.log('Bubble press');
     });
   });
   DeviceEventEmitter.addListener('floating-dismoi-message-press', (e) => {
     // What to do when user press on the message
-    return FloatingModule.hideFloatingDisMoiMessage().then(() => {});
+    return FloatingModule.initialize().then(() => {
+      return FloatingModule.hideFloatingDisMoiMessage().then(() => {});
+    });
   });
 
   DeviceEventEmitter.addListener('floating-dismoi-bubble-remove', (e) => {
@@ -54,7 +61,24 @@ function callActionListeners() {
       FloatingModule.hideFloatingDisMoiBubble().then(() =>
         FloatingModule.hideFloatingDisMoiMessage()
       );
-      Linking.openURL(event);
+    });
+    Linking.openURL(event);
+  });
+
+  DeviceEventEmitter.addListener('DELETE_NOTICE', (event) => {
+    if (_notices && _notices.length === 1) {
+      FloatingModule.hideFloatingDisMoiMessage();
+      return;
+    }
+
+    const foundIn = [parseInt(event)];
+    var res = _notices.filter(function (eachElem, index) {
+      return foundIn.indexOf(index) === -1;
+    });
+
+    FloatingModule.showFloatingDisMoiMessage(res, 1500, res.length).then(() => {
+      // What to do when user press on the bubble
+      _notices = res;
     });
   });
 }
@@ -133,11 +157,11 @@ const HeadlessTask = async (taskData) => {
               res.modified = formattedDate;
               return result;
             });
+            _notices = noticesToShow;
             FloatingModule.showFloatingDisMoiBubble(
               10,
               1500,
               notices.length,
-              noticesToShow,
               eventMessageFromChromeURL
             ).then(() => {
               noticeIds = [];

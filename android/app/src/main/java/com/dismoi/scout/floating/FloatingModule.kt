@@ -76,12 +76,14 @@ class FloatingModule(
     messagesManager = Manager.Builder(reactContext)
     .setInitializationCallback(object : OnCallback {
       override fun onInitialized() {
+        Log.d("Notification", "MESSAGE IS INITIALIZED")
         messageIsInitialized = true
 
         promise.resolve("")
       }
     }).build()
 
+    Log.d("Notification", "INITIALIZE???");
 
     bubblesManager!!.initialize()
     messagesManager!!.initialize()
@@ -92,12 +94,10 @@ class FloatingModule(
     x: Int,
     y: Int,
     numberOfNotice: Int,
-    notices: ReadableArray,
     url: String,
     promise: Promise
   ) {
     _url = url
-    _notices = notices
     _size = numberOfNotice
 
     addNewFloatingDisMoiBubble(x, y, numberOfNotice.toString())
@@ -105,17 +105,22 @@ class FloatingModule(
   }
 
   @ReactMethod
-  fun showFloatingDisMoiMessage(x: Int, y: Int, promise: Promise) {
-
-    if (messageDisMoiView == null) {
-      try {
-        removeDisMoiBubble()
-
-        addNewFloatingDisMoiMessage(x, y)
-        promise.resolve("")
-      } catch (e: Exception) {
-        promise.reject("0", "")
+  fun showFloatingDisMoiMessage(notices: ReadableArray, y: Int, numberOfNotice: Int, promise: Promise) {
+    try {
+      Log.d("Notification", "ADD NEW FLOATING DIS MOI MESSAGE")
+      if (messageDisMoiView != null) {
+        removeDisMoiMessage()
+        messageDisMoiView = null
       }
+
+      removeDisMoiBubble()
+      _notices = notices
+      _size = numberOfNotice
+
+      addNewFloatingDisMoiMessage(y)
+      promise.resolve("")
+    } catch (e: Exception) {
+      promise.reject("0", "")
     }
   }
 
@@ -172,12 +177,17 @@ class FloatingModule(
     movementMethod = LinkMovementMethod.getInstance()
   }
 
-  private fun addNewFloatingDisMoiMessage(x: Int, y: Int) {
+  private fun addNewFloatingDisMoiMessage(y: Int) {
 
-    if (messageIsInitialized == true) {
+    Log.d("Notification", "BEGIN")
+    Log.d("Notification", messageDisMoiView.toString())
+
+    //if (messageIsInitialized == true) {
       messageDisMoiView = LayoutInflater.from(reactContext).inflate(
         R.layout.highlight_messages, messageDisMoiView, false
       ) as Message
+
+      Log.d("Notification", "FIND VIEW BY ID")
 
       val carouselView = messageDisMoiView!!.findViewById(
         R.id.carouselView
@@ -187,13 +197,18 @@ class FloatingModule(
 
       carouselView!!.setViewListener(viewListener)
 
+      Log.d("Notification", "MESSAGE DISMOI VIEW")
+
       val imageButton = messageDisMoiView!!.findViewById<View>(R.id.close) as ImageButton
       imageButton.setOnClickListener {
         sendEventToReactNative("floating-dismoi-message-press", "")
       }
 
-      messagesManager!!.addDisMoiMessage(messageDisMoiView!!, x, y)
-    }
+      Log.d("Notification", "Add dismoi message")
+
+      messagesManager!!.addDisMoiMessage(messageDisMoiView!!, y)
+
+    //}
   }
 
   private fun addNewFloatingDisMoiBubble(x: Int, y: Int, numberOfNotice: String) {
@@ -229,6 +244,7 @@ class FloatingModule(
 
   private fun removeDisMoiMessage() {
     if (messageDisMoiView != null) {
+      Log.d("Notification", "remove dismoi message")
       messagesManager!!.removeDisMoiMessage(messageDisMoiView)
       messageDisMoiView = null
     }
@@ -253,11 +269,16 @@ class FloatingModule(
   var viewListener: ViewListener = object : ViewListener {
 
     override fun setViewForPosition(position: Int): View? {
+      Log.d("Notification", "-----------------------------------------")
+      Log.d("Notification", position.toString())
+
       val message: ReadableMap? = _notices.getMap(position)
 
       var disMoiContributorNameMap: ReadableMap? = message!!.getMap("contributor")
 
       var url: String? = disMoiContributorNameMap!!.getMap("avatar")!!.getMap("normal")!!.getString("url");
+
+      Log.d("Notification", url.toString())
 
       var modified: String? = message!!.getString("modified");
 
@@ -292,11 +313,17 @@ class FloatingModule(
         sendEventToReactNative("URL_CLICK_LINK", Uri.parse(url).toString())
       }
 
+      val imageButton = customView!!.findViewById<View>(R.id.closeNotice) as ImageView
+      imageButton.setOnClickListener {
+        Log.d("Notification", position.toString())
+        sendEventToReactNative("DELETE_NOTICE", position.toString())
+      }
+
       val imageView: ImageView = customView!!.findViewById(R.id.contributorProfile) as ImageView
 
-      Glide.with(reactContext)
-        .load<Any>(url)
-        .into(imageView)
+      //Glide.with(reactContext)
+        //.load<Any>(url)
+        //.into(imageView)
 
       return customView
     }

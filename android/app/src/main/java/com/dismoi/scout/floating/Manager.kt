@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
 import android.os.IBinder
+import android.util.Log
 import com.dismoi.scout.floating.FloatingService.FloatingServiceBinder
 import com.dismoi.scout.floating.layout.Bubble
 import com.dismoi.scout.floating.layout.Message
@@ -52,9 +53,9 @@ class Manager private constructor(private val context: Context) {
     }
   }
 
-  fun addDisMoiMessage(message: Message?, x: Int, y: Int) {
+  fun addDisMoiMessage(message: Message?, y: Int) {
     if (bounded) {
-      bubblesService!!.addDisMoiMessage(message, x, y)
+      bubblesService!!.addDisMoiMessage(message, y)
     }
   }
 
@@ -66,6 +67,7 @@ class Manager private constructor(private val context: Context) {
 
   fun removeDisMoiMessage(message: Message?) {
     if (bounded) {
+      Log.d("Notification", "remove dismoi message")
       bubblesService!!.removeMessage(message)
     }
   }

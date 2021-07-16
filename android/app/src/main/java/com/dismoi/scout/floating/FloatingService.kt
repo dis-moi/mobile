@@ -15,7 +15,6 @@ import com.dismoi.scout.floating.layout.Message
 class FloatingService : Service() {
   private val binder = FloatingServiceBinder()
   private var bubbles: MutableList<Bubble> = ArrayList()
-  private val messages: MutableList<Message> = ArrayList()
   private var bubblesTrash: Trash? = null
   private var windowManager: WindowManager? = null
   private var layoutCoordinator: Coordinator? = null
@@ -47,16 +46,9 @@ class FloatingService : Service() {
   }
 
   private fun recycleMessage(message: Message?) {
-    Handler(Looper.getMainLooper()).post {
-      getWindowManager()!!.removeView(message)
-      for (cachedMessage in messages) {
-        if (cachedMessage == message) {
-          messages.remove(cachedMessage)
-          bubblesTrash = null
-          break
-        }
-      }
-    }
+    Log.d("Notification", "recycle message")
+    getWindowManager()!!.removeView(message)
+    bubblesTrash = null
   }
 
   private fun getWindowManager(): WindowManager? {
@@ -74,11 +66,11 @@ class FloatingService : Service() {
     addViewToWindow(bubble)
   }
 
-  fun addDisMoiMessage(message: Message?, x: Int, y: Int) {
-    val layoutParams = buildLayoutParamsForMessage(x, y)
+  fun addDisMoiMessage(message: Message?, y: Int) {
+    val layoutParams = buildLayoutParamsForMessage(y)
     message!!.create(getWindowManager(), layoutParams, layoutCoordinator)
-    messages.add(message)
-    addViewToWindow(message)
+
+    getWindowManager()!!.addView(message, message.viewParams)
   }
 
   fun addTrash(trashLayoutResourceId: Int) {
@@ -123,7 +115,7 @@ class FloatingService : Service() {
     return params
   }
 
-  private fun buildLayoutParamsForMessage(x: Int, y: Int): WindowManager.LayoutParams? {
+  private fun buildLayoutParamsForMessage(y: Int): WindowManager.LayoutParams? {
     var params: WindowManager.LayoutParams? = null
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
       params = WindowManager.LayoutParams(
@@ -135,8 +127,6 @@ class FloatingService : Service() {
       )
     }
     params!!.gravity = Gravity.END
-    //params!!.flags = WindowManager.LayoutParams.FLAG_DIM_BEHIND.inv()
-    // params.x = x
     params.y = y
     return params
   }

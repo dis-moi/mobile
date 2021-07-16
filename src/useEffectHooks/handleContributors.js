@@ -28,13 +28,12 @@ function HandleContributorsEffect(
             values
               .map((res) => {
                 if (res[0] !== 'url') {
-                  return res[1];
+                  return JSON.parse(res[1])?.id;
                 }
               })
               .filter(Boolean)
           ),
         ];
-
         const contributorsFromV3api = await fetch(
           'https://notices.bulles.fr/api/v3/contributors'
         ).then((response) => {
@@ -42,12 +41,12 @@ function HandleContributorsEffect(
         });
         const contributorsSorted = sortNumberOfPublishedNoticeFromHighestToLowest(
           contributorsFromV3api.filter(
-            (contributor) => !ids.includes(String(contributor.id))
+            (contributor) => !ids.includes(contributor.id)
           )
         );
         const contributorsFollowedSorted = sortNumberOfPublishedNoticeFromHighestToLowest(
           contributorsFromV3api.filter((contributor) =>
-            ids.includes(String(contributor.id))
+            ids.includes(contributor.id)
           )
         );
         if (!cancelled) {
@@ -64,7 +63,7 @@ function HandleContributorsEffect(
     return () => {
       cancelled = true;
     };
-  }, [radioButtonThatIsActivated, setItemIds]);
+  }, [itemIds, radioButtonThatIsActivated, setItemIds]);
 
   React.useEffect(() => {
     let cancelled = false;
@@ -76,12 +75,12 @@ function HandleContributorsEffect(
 
       const contributorsSorted = sortNumberOfPublishedNoticeFromHighestToLowest(
         filteredContributorsByCategories.filter(
-          (contributor) => !itemIds.includes(String(contributor.id))
+          (contributor) => !itemIds.includes(contributor.id)
         )
       );
       const contributorsFollowedSorted = sortNumberOfPublishedNoticeFromHighestToLowest(
         filteredContributorsByCategories.filter((contributor) =>
-          itemIds.includes(String(contributor.id))
+          itemIds.includes(contributor.id)
         )
       );
 

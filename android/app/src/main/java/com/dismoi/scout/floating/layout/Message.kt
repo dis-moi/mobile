@@ -23,14 +23,6 @@ import androidx.appcompat.widget.AppCompatImageView
 
 class Message(context: Context, attrs: AttributeSet?) : Layout(context, attrs) {
 
-  lateinit var star: ImageView
-  lateinit var rotateButton: Button
-  lateinit var translateButton: Button
-  lateinit var scaleButton: Button
-  lateinit var fadeButton: Button
-  lateinit var colorizeButton: Button
-  lateinit var showerButton: Button
-
   override fun onAttachedToWindow() {
     Log.d("Notification", "Hello")
     super.onAttachedToWindow()
