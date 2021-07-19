@@ -40,10 +40,6 @@ function Finished() {
   );
 
   function contributorItemFromList({ item }) {
-    console.log(item.id);
-    console.log('item ids');
-    console.log(itemIds);
-
     if (item.name && item?.avatar?.normal?.url) {
       return (
         <ItemFromList borderRadius={15}>
