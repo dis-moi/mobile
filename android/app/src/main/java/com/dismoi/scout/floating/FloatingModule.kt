@@ -30,14 +30,12 @@ import com.facebook.react.modules.core.DeviceEventManagerModule.RCTDeviceEventEm
 import com.synnapps.carouselview.CarouselView
 import com.synnapps.carouselview.ViewListener
 
-
 class FloatingModule(
   private val reactContext: ReactApplicationContext
 ) : ReactContextBaseJavaModule(reactContext) {
 
   private var bubblesService: FloatingService? = null
 
-  var bubbleIsInitialized = false
   var messageIsInitialized = false
 
   private var bubblesManager: Manager? = null
@@ -72,7 +70,6 @@ class FloatingModule(
       R.layout.bubble_trash
     ).setInitializationCallback(object : OnCallback {
       override fun onInitialized() {
-        bubbleIsInitialized = true
       }
     }).build()
 
@@ -102,10 +99,6 @@ class FloatingModule(
     _url = url
     _notices = notices
     _size = numberOfNotice
-
-    if (bubbleDisMoiView != null) {
-      removeDisMoiBubble()
-    }
 
     addNewFloatingDisMoiBubble(x, y, numberOfNotice.toString())
     promise.resolve("")
@@ -180,7 +173,6 @@ class FloatingModule(
   }
 
   private fun addNewFloatingDisMoiMessage(x: Int, y: Int) {
-    removeDisMoiBubble()
 
     if (messageIsInitialized == true) {
       messageDisMoiView = LayoutInflater.from(reactContext).inflate(
@@ -268,11 +260,6 @@ class FloatingModule(
       var url: String? = disMoiContributorNameMap!!.getMap("avatar")!!.getMap("normal")!!.getString("url");
 
       var modified: String? = message!!.getString("modified");
-
-      Log.d("Notification", "created")
-      Log.d("Notification", modified.toString());
-      Log.d("Notification", "url")
-      Log.d("Notification", url.toString());
 
       var disMoiContributorName: String? = disMoiContributorNameMap.getString("name")
 

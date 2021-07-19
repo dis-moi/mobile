@@ -65,18 +65,21 @@ let matchingContextFetchApi =
 async function callMatchingContext(savedUrlMatchingContext) {
   console.log('_________________CALL MATHING CONTEXT____________________');
 
-  return await fetch(matchingContextFetchApi + savedUrlMatchingContext).then(
-    (response) => {
+  return await fetch(matchingContextFetchApi + savedUrlMatchingContext)
+    .then((response) => {
       console.log(
         '_________________END CALL MATHING CONTEXT____________________'
       );
       return response.json();
-    }
-  );
+    })
+    .catch((error) => {
+      console.log('ERROR MATCHING CONTEXT');
+      console.log(error);
+    });
 }
 
 async function getHTMLOfCurrentChromeURL(eventMessageFromChromeURL) {
-  return await fetch(`http://www.${eventMessageFromChromeURL}`).then(function (
+  return await fetch(`https://www.${eventMessageFromChromeURL}`).then(function (
     response
   ) {
     // The API call was successful!
@@ -84,65 +87,66 @@ async function getHTMLOfCurrentChromeURL(eventMessageFromChromeURL) {
   });
 }
 
+let i = 0;
+let url = '';
+
 const HeadlessTask = async (taskData) => {
-  SharedPreferences.getItem('url', async function (savedUrlMatchingContext) {
+  if (i === 0) {
     callActionListeners();
     FloatingModule.initialize();
-    const res = await Promise.all([
-      await callMatchingContext(savedUrlMatchingContext),
-      await getHTMLOfCurrentChromeURL(taskData.url),
-    ]);
-
-    const matchingContexts = res[0];
-    const HTML = res[1];
-
-    if (taskData.hide === 'true') {
-      FloatingModule.hideFloatingDisMoiBubble().then(() =>
-        FloatingModule.hideFloatingDisMoiMessage()
-      );
-      return;
-    }
-    const eventMessageFromChromeURL = taskData.url;
-
-    if (eventMessageFromChromeURL) {
-      if (taskData.eventText === '') {
-        let noticeIds = await getNoticeIds(
-          eventMessageFromChromeURL,
-          matchingContexts,
-          HTML
-        );
-
-        const uniqueIds = [...new Set(noticeIds)];
-
-        let notices = await Promise.all(
-          uniqueIds.map((noticeId) =>
-            fetch(
-              `https://notices.bulles.fr/api/v3/notices/${noticeId}`
-            ).then((response) => response.json())
-          )
-        );
-
-        if (notices.length > 0) {
-          const noticesToShow = notices.map((res) => {
-            const formattedDate = formatDate(res);
-            res.modified = formattedDate;
-
-            return res;
-          });
-
-          FloatingModule.showFloatingDisMoiBubble(
-            10,
-            1500,
-            notices.length,
-            noticesToShow,
-            eventMessageFromChromeURL
-          ).then(() => {
-            noticeIds = [];
-          });
+    i++;
+  }
+  if (taskData.hide === 'true') {
+    FloatingModule.hideFloatingDisMoiBubble().then(() =>
+      FloatingModule.hideFloatingDisMoiMessage()
+    );
+    return;
+  }
+  if (taskData.url !== url) {
+    url = taskData.url;
+    SharedPreferences.getItem('url', async function (savedUrlMatchingContext) {
+      const res = await Promise.all([
+        await callMatchingContext(savedUrlMatchingContext),
+        await getHTMLOfCurrentChromeURL(taskData.url),
+      ]);
+      const matchingContexts = res[0];
+      const HTML = res[1];
+      const eventMessageFromChromeURL = taskData.url;
+      if (eventMessageFromChromeURL) {
+        if (taskData.eventText === '') {
+          let noticeIds = await getNoticeIds(
+            eventMessageFromChromeURL,
+            matchingContexts,
+            HTML
+          );
+          const uniqueIds = [...new Set(noticeIds)];
+          let notices = await Promise.all(
+            uniqueIds.map((noticeId) =>
+              fetch(
+                `https://notices.bulles.fr/api/v3/notices/${noticeId}`
+              ).then((response) => response.json())
+            )
+          );
+          if (notices.length > 0) {
+            const noticesToShow = notices.map((result) => {
+              const formattedDate = formatDate(result);
+              res.modified = formattedDate;
+              return result;
+            });
+            FloatingModule.showFloatingDisMoiBubble(
+              10,
+              1500,
+              notices.length,
+              noticesToShow,
+              eventMessageFromChromeURL
+            ).then(() => {
+              noticeIds = [];
+            });
+          }
         }
       }
-    }
-  });
+    });
+  }
 };
 
 export default HeadlessTask;
