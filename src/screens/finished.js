@@ -53,7 +53,8 @@ function Finished() {
                   {item.name}
                 </Title>
                 <View style={{ marginTop: 12 }}>
-                  {itemIds.includes(String(item.id)) ? (
+                  {itemIds.includes(item.id) ||
+                  itemIds.includes(String(item.id)) ? (
                     <Button
                       small
                       text={'Abonné(e)'}
@@ -61,12 +62,13 @@ function Finished() {
                       border
                       backgroundColor={'white'}
                       color={
-                        itemIds.includes(String(item.id)) ? 'black' : 'white'
+                        itemIds.includes(item.id) ||
+                        itemIds.includes(String(item.id))
+                          ? 'black'
+                          : 'white'
                       }
                       onPress={() => {
-                        setItemIds(
-                          itemIds.filter((id) => id !== String(item.id))
-                        );
+                        setItemIds(itemIds.filter((id) => id !== item.id));
                         SharedPreferences.removeItem(item.name);
                       }}
                     />
@@ -76,7 +78,10 @@ function Finished() {
                       text={'Suivre'}
                       onPress={() => {
                         setItemIds([...itemIds, String(item.id)]);
-                        SharedPreferences.setItem(item.name, String(item.id));
+                        SharedPreferences.setItem(
+                          item.name,
+                          `{"id": ${item.id}}`
+                        );
                       }}
                     />
                   )}
@@ -92,7 +97,7 @@ function Finished() {
           >
             <TouchableOpacity
               onPress={() => {
-                if (itemIds.includes(String(item.id))) {
+                if (itemIds.includes(item.id)) {
                   FloatingModule.openLink(
                     item.contribution.example.exampleMatchingUrl
                   );
@@ -120,7 +125,7 @@ function Finished() {
   return (
     <View style={{ backgroundColor: '#e9eaef' }}>
       <PopUp modalVisible={modalVisible} setModalVisible={setModalVisible}>
-        {itemIds.includes(String(contributorForModal.id)) ? (
+        {itemIds.includes(contributorForModal.id) ? (
           <View style={{ marginBottom: 30 }}>
             <SimpleText>
               Vous êtes abonné(e) à {contributorForModal.name}.
@@ -134,7 +139,7 @@ function Finished() {
             </SimpleText>
           </View>
         )}
-        {itemIds.includes(String(contributorForModal.id)) ? (
+        {itemIds.includes(contributorForModal.id) ? (
           <Button
             small
             text={"Voir l'exemple"}
@@ -152,7 +157,7 @@ function Finished() {
               setItemIds([...itemIds, String(contributorForModal.id)]);
               SharedPreferences.setItem(
                 contributorForModal.name,
-                String(contributorForModal.id)
+                `{"id": ${contributorForModal.id}}`
               );
             }}
           />
