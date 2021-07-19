@@ -13,7 +13,7 @@ function SimpleText({
       style={{
         textAlign: left ? 'left' : 'center',
         fontFamily: 'Helvetica',
-        fontSize: fontSize || 17,
+        fontSize: fontSize,
         letterSpacing: letterSpacing || 0.73,
         color: color,
       }}
