@@ -76,7 +76,6 @@ class FloatingModule(
     messagesManager = Manager.Builder(reactContext)
     .setInitializationCallback(object : OnCallback {
       override fun onInitialized() {
-        Log.d("Notification", "MESSAGE IS INITIALIZED")
         messageIsInitialized = true
 
         promise.resolve("")
@@ -142,7 +141,6 @@ class FloatingModule(
 
   @ReactMethod
   fun hideFloatingDisMoiMessage() {
-    Log.d("Notification", "Hide floating dismoi message")
     removeDisMoiMessage()
   }
 
