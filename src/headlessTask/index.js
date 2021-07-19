@@ -130,7 +130,8 @@ const HeadlessTask = async (taskData) => {
           if (notices.length > 0) {
             const noticesToShow = notices.map((result) => {
               const formattedDate = formatDate(result);
-              res.modified = formattedDate;
+
+              result.modified = formattedDate;
               return result;
             });
             FloatingModule.showFloatingDisMoiBubble(
