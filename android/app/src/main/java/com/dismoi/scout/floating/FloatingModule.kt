@@ -260,8 +260,6 @@ class FloatingModule(
 
       var modified: String? = message.getString("modified")
 
-      Log.d("Notification", modified)
-
       var disMoiContributorName: String? = disMoiContributorNameMap.getString("name")
 
       var disMoiMessage: String? = message.getString("message")

@@ -27,7 +27,7 @@
         android:orientation="horizontal"
       >
         <ImageView
-          android:src="@drawable/logo1"
+          android:src="@drawable/logo"
           android:layout_width="143dp"
           android:layout_height="35dp"
           android:layout_marginLeft="2dp"
