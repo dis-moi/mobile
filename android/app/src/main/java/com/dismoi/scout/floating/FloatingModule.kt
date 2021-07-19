@@ -141,9 +141,9 @@ class FloatingModule(
   }
 
   @ReactMethod
-  fun hideFloatingDisMoiMessage(promise: Promise) {
+  fun hideFloatingDisMoiMessage() {
+    Log.d("Notification", "Hide floating dismoi message")
     removeDisMoiMessage()
-    promise.resolve("")
   }
 
   /**
