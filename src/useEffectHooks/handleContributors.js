@@ -63,7 +63,7 @@ function HandleContributorsEffect(
     return () => {
       cancelled = true;
     };
-  }, [itemIds, radioButtonThatIsActivated, setItemIds]);
+  }, [setItemIds]);
 
   React.useEffect(() => {
     let cancelled = false;

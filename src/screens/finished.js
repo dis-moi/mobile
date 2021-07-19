@@ -40,6 +40,10 @@ function Finished() {
   );
 
   function contributorItemFromList({ item }) {
+    console.log(item.id);
+    console.log('item ids');
+    console.log(itemIds);
+
     if (item.name && item?.avatar?.normal?.url) {
       return (
         <ItemFromList borderRadius={15}>
@@ -77,7 +81,7 @@ function Finished() {
                       small
                       text={'Suivre'}
                       onPress={() => {
-                        setItemIds([...itemIds, String(item.id)]);
+                        setItemIds([...itemIds, item.id]);
                         SharedPreferences.setItem(
                           item.name,
                           `{"id": ${item.id}}`
