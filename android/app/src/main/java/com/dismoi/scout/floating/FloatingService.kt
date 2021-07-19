@@ -74,8 +74,8 @@ class FloatingService : Service() {
     addViewToWindow(bubble)
   }
 
-  fun addDisMoiMessage(message: Message?, x: Int, y: Int) {
-    val layoutParams = buildLayoutParamsForMessage(x, y)
+  fun addDisMoiMessage(message: Message?, y: Int) {
+    val layoutParams = buildLayoutParamsForMessage(y)
     message!!.create(getWindowManager(), layoutParams, layoutCoordinator)
     messages.add(message)
     addViewToWindow(message)
@@ -123,7 +123,7 @@ class FloatingService : Service() {
     return params
   }
 
-  private fun buildLayoutParamsForMessage(x: Int, y: Int): WindowManager.LayoutParams? {
+  private fun buildLayoutParamsForMessage(y: Int): WindowManager.LayoutParams? {
     var params: WindowManager.LayoutParams? = null
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
       params = WindowManager.LayoutParams(
@@ -135,8 +135,7 @@ class FloatingService : Service() {
       )
     }
     params!!.gravity = Gravity.END
-    //params!!.flags = WindowManager.LayoutParams.FLAG_DIM_BEHIND.inv()
-    // params.x = x
+
     params.y = y
     return params
   }

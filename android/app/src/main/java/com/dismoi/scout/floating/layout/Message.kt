@@ -32,7 +32,6 @@ class Message(context: Context, attrs: AttributeSet?) : Layout(context, attrs) {
   lateinit var showerButton: Button
 
   override fun onAttachedToWindow() {
-    Log.d("Notification", "Hello")
     super.onAttachedToWindow()
     playAnimation()
   }

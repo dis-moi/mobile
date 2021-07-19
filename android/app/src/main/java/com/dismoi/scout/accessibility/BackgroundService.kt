@@ -7,6 +7,7 @@ import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
+import android.os.Looper
 import android.provider.Settings.canDrawOverlays
 import android.view.accessibility.AccessibilityEvent
 import android.view.accessibility.AccessibilityNodeInfo
@@ -24,7 +25,7 @@ class BackgroundService : AccessibilityService() {
 
   private val NOTIFICATION_TIMEOUT: Long = 300
 
-  private val handler = Handler()
+  private val handler = Handler(Looper.getMainLooper())
   private val runnableCode: Runnable = object : Runnable {
     override fun run() {
       val context = applicationContext
@@ -101,7 +102,7 @@ class BackgroundService : AccessibilityService() {
   }
 
   private fun isWindowChangeEvent(event: AccessibilityEvent): Boolean {
-    return AccessibilityEvent.eventTypeToString(event.getEventType()).contains("WINDOW")
+    return AccessibilityEvent.eventTypeToString(event.eventType).contains("WINDOW")
   }
 
   @RequiresApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
@@ -160,7 +161,7 @@ class BackgroundService : AccessibilityService() {
   }
 
   override fun onInterrupt() {
-    sendEventFromAccessibilityServicePermission("false");
+    sendEventFromAccessibilityServicePermission("false")
   }
 
   private class SupportedBrowserConfig(var packageName: String, var addressBarId: String)
@@ -174,14 +175,10 @@ class BackgroundService : AccessibilityService() {
     return browsers
   }
 
-  override fun onCreate() {
-    super.onCreate()
-  }
-
   override fun onDestroy() {
     super.onDestroy()
 
-    sendEventFromAccessibilityServicePermission("false");
+    sendEventFromAccessibilityServicePermission("false")
     handler.removeCallbacks(runnableCode)
   }
 }
