@@ -129,7 +129,7 @@ class FloatingModule(
   }
 
   @ReactMethod
-  fun openLink(url: String, promise: Promise) {
+  fun openLink(url: String) {
     val sharingIntent = Intent(Intent.ACTION_VIEW)
     sharingIntent.data = Uri.parse(url)
     sharingIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
@@ -256,9 +256,11 @@ class FloatingModule(
 
       var disMoiContributorNameMap: ReadableMap? = message!!.getMap("contributor")
 
-      var url: String? = disMoiContributorNameMap!!.getMap("avatar")!!.getMap("normal")!!.getString("url");
+      var url: String? = disMoiContributorNameMap!!.getMap("avatar")!!.getMap("normal")!!.getString("url")
 
-      var modified: String? = message!!.getString("modified");
+      var modified: String? = message.getString("modified")
+
+      Log.d("Notification", modified)
 
       var disMoiContributorName: String? = disMoiContributorNameMap.getString("name")
 
@@ -269,26 +271,26 @@ class FloatingModule(
       val type = Typeface.createFromAsset(reactContext.assets, "fonts/Helvetica.ttf")
 
       val typeBold = Typeface.createFromAsset(reactContext.assets, "fonts/Helvetica-Bold.ttf")
-      var textView: TextView? = customView!!.findViewById(R.id.link)
+      var textView: TextView? = customView.findViewById(R.id.link)
 
-      textView!!.setTypeface(type);
+      textView!!.typeface = type
 
-      textView!!.text = disMoiMessage!!.toSpanned()
+      textView.text = disMoiMessage!!.toSpanned()
 
-      var textViewContributorName: TextView? = customView!!.findViewById(R.id.name)
+      var textViewContributorName: TextView? = customView.findViewById(R.id.name)
 
-      textViewContributorName!!.setTypeface(typeBold);
+      textViewContributorName!!.typeface = typeBold
 
-      var textViewDate: TextView? = customView!!.findViewById(R.id.date)
+      var textViewDate: TextView? = customView.findViewById(R.id.date)
 
-      textViewDate!!.setTypeface(typeBold);
+      textViewDate!!.typeface = typeBold
 
-      textViewContributorName!!.text = disMoiContributorName
+      textViewContributorName.text = disMoiContributorName
 
-      textViewDate!!.text = modified
+      textViewDate.text = modified
 
-      textView!!.handleUrlClicks { url ->
-        sendEventToReactNative("URL_CLICK_LINK", Uri.parse(url).toString())
+      textView.handleUrlClicks { urlLinkToClick ->
+        sendEventToReactNative("URL_CLICK_LINK", Uri.parse(urlLinkToClick).toString())
       }
 
       val imageButton = customView!!.findViewById<View>(R.id.closeNotice) as ImageView

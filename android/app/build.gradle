@@ -1,7 +1,6 @@
 apply plugin: "com.android.application"
 apply plugin: 'kotlin-android'
 apply plugin: "com.github.konifar.gradle.unused-resources-remover"
-apply plugin: 'org.jetbrains.kotlin.android.extensions'
 
 import com.android.build.OutputFile
 
@@ -134,6 +133,7 @@ android {
 
   defaultConfig {
     applicationId "com.dismoi.scout"
+    buildToolsVersion "30.0.2"
     minSdkVersion rootProject.ext.minSdkVersion
     targetSdkVersion rootProject.ext.targetSdkVersion
     versionCode 4

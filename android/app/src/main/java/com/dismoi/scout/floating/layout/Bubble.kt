@@ -125,7 +125,7 @@ class Bubble(context: Context, attrs: AttributeSet?) : Layout(context, attrs) {
     val display = windowManager!!.defaultDisplay
     val size = Point()
     display.getSize(size)
-    _screenWidth = size.x - getWidth()
+    _screenWidth = size.x - width
   }
 
   interface OnBubbleRemoveListener {
