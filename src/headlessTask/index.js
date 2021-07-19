@@ -9,6 +9,7 @@ import SharedPreferences from 'react-native-shared-preferences';
 import 'moment/min/locales';
 
 let _notices = [];
+let _noticeIds = [];
 
 async function getNoticeIds(eventMessageFromChromeURL, matchingContexts, HTML) {
   const noticeIds = [];
@@ -66,19 +67,33 @@ function callActionListeners() {
   });
 
   DeviceEventEmitter.addListener('DELETE_NOTICE', (event) => {
-    if (_notices && _notices.length === 1) {
-      FloatingModule.hideFloatingDisMoiMessage();
-      return;
-    }
+    const contributorName = _notices[parseInt(event)].contributor.name;
 
-    const foundIn = [parseInt(event)];
-    var res = _notices.filter(function (eachElem, index) {
-      return foundIn.indexOf(index) === -1;
-    });
+    const noticeId = _notices[parseInt(event)].id;
+    SharedPreferences.getItem(contributorName, function (value) {
+      const json = JSON.parse(value);
+      json.noticeDeleted = noticeId;
 
-    FloatingModule.showFloatingDisMoiMessage(res, 1500, res.length).then(() => {
-      // What to do when user press on the bubble
-      _notices = res;
+      const stringifyJson = JSON.stringify(json);
+
+      SharedPreferences.setItem(contributorName, stringifyJson);
+
+      const foundIn = [parseInt(event)];
+      var res = _notices.filter(function (eachElem, index) {
+        return foundIn.indexOf(index) === -1;
+      });
+
+      if (_notices && _notices.length === 1) {
+        FloatingModule.hideFloatingDisMoiMessage();
+        return;
+      }
+
+      FloatingModule.showFloatingDisMoiMessage(res, 1500, res.length).then(
+        () => {
+          // What to do when user press on the message
+          _notices = res;
+        }
+      );
     });
   });
 }
@@ -109,6 +124,26 @@ async function getHTMLOfCurrentChromeURL(eventMessageFromChromeURL) {
     // The API call was successful!
     return response.text();
   });
+}
+
+function getNoticeIdsThatAreNotDeleted(contributors, noticesToShow) {
+  const noticesIdToDelete = contributors
+    .map((contributor) => {
+      if (contributor?.noticeDeleted) {
+        return contributor.noticeDeleted;
+      }
+    })
+    .filter(Boolean);
+
+  const noticesIdFromNoticesToShow = noticesToShow
+    .map((notice) => {
+      return notice.id;
+    })
+    .filter(Boolean);
+
+  return noticesIdFromNoticesToShow.filter(
+    (e) => !noticesIdToDelete.find((a) => e === a)
+  );
 }
 
 let i = 0;
@@ -144,6 +179,7 @@ const HeadlessTask = async (taskData) => {
             HTML
           );
           const uniqueIds = [...new Set(noticeIds)];
+
           let notices = await Promise.all(
             uniqueIds.map((noticeId) =>
               fetch(
@@ -157,14 +193,43 @@ const HeadlessTask = async (taskData) => {
               res.modified = formattedDate;
               return result;
             });
-            _notices = noticesToShow;
-            FloatingModule.showFloatingDisMoiBubble(
-              10,
-              1500,
-              notices.length,
-              eventMessageFromChromeURL
-            ).then(() => {
-              noticeIds = [];
+
+            SharedPreferences.getAll(function (values) {
+              const contributors = [
+                ...new Set(
+                  values
+                    .map((result) => {
+                      if (result[0] !== 'url') {
+                        return JSON.parse(result[1]);
+                      }
+                    })
+                    .filter(Boolean)
+                ),
+              ];
+
+              const noticeIdNotDeleted = getNoticeIdsThatAreNotDeleted(
+                contributors,
+                noticesToShow
+              );
+
+              if (noticeIdNotDeleted.length > 0) {
+                _notices = noticeIdNotDeleted.map((id) => {
+                  return noticesToShow.find(
+                    (noticeToShow) => noticeToShow.id === id
+                  );
+                });
+
+                _noticeIds = noticeIdNotDeleted.length;
+
+                FloatingModule.showFloatingDisMoiBubble(
+                  10,
+                  1500,
+                  notices.length,
+                  eventMessageFromChromeURL
+                ).then(() => {
+                  noticeIds = [];
+                });
+              }
             });
           }
         }

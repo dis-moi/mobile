@@ -46,7 +46,6 @@ class FloatingService : Service() {
   }
 
   private fun recycleMessage(message: Message?) {
-    Log.d("Notification", "recycle message")
     getWindowManager()!!.removeView(message)
     bubblesTrash = null
   }
