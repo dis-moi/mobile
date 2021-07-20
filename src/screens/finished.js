@@ -42,14 +42,12 @@ function Finished() {
   function contributorItemFromList({ item }) {
     if (item.name && item?.avatar?.normal?.url) {
       return (
-        <ItemFromList borderRadius={15}>
-          <CardItem
-            style={{ borderTopLeftRadius: 15, borderTopRightRadius: 15 }}
-          >
+        <ItemFromList>
+          <CardItem>
             <Left>
-              <ContributorLogo source={item?.avatar?.normal.url} />
+              <ContributorLogo size={60} source={item?.avatar?.normal.url} />
               <Body>
-                <Title left fontSize={20}>
+                <Title left fontSize={16}>
                   {item.name}
                 </Title>
                 <View style={{ marginTop: 12 }}>
@@ -59,7 +57,10 @@ function Finished() {
                       small
                       text={'Abonné(e)'}
                       icon
+                      height={30}
+                      width={160}
                       border
+                      borderRadius={8}
                       backgroundColor={'white'}
                       color={
                         itemIds.includes(item.id) ||
@@ -76,6 +77,9 @@ function Finished() {
                     <Button
                       small
                       text={'Suivre'}
+                      height={30}
+                      width={160}
+                      borderRadius={8}
                       onPress={() => {
                         setItemIds([...itemIds, String(item.id)]);
                         SharedPreferences.setItem(
@@ -92,9 +96,7 @@ function Finished() {
           <CardItem cardBody>
             <Paragraph>{item.title}</Paragraph>
           </CardItem>
-          <CardItem
-            style={{ borderBottomLeftRadius: 15, borderBottomRightRadius: 15 }}
-          >
+          <CardItem>
             <TouchableOpacity
               onPress={() => {
                 if (itemIds.includes(item.id)) {
@@ -112,7 +114,7 @@ function Finished() {
                 }
               }}
             >
-              <SimpleText color={'#1e52b4'} letterSpacing={0.3}>
+              <SimpleText color={'#1e52b4'} letterSpacing={0.3} fontSize={12}>
                 Voir un exemple réel >
               </SimpleText>
             </TouchableOpacity>
@@ -165,25 +167,32 @@ function Finished() {
       </PopUp>
       <View
         style={{
-          height: 50,
+          height: 60,
           justifyContent: 'center',
         }}
       >
         <Title>Choix des contributeurs</Title>
       </View>
-      <RadioButtons
-        onPress={(value) => {
-          setRadioButtonThatIsActivated(value);
+      <View
+        style={{
+          height: 60,
+          backgroundColor: 'white',
         }}
-      />
+      >
+        <RadioButtons
+          onPress={(value) => {
+            setRadioButtonThatIsActivated(value);
+          }}
+        />
+      </View>
       {contributors.length === 0 && (
         <ActivityIndicator isVisible size={40} color={'#2855a2'} />
       )}
 
       {contributors.length > 0 && (
         <FlatList
-          style={{ marginTop: 15 }}
           contentContainerStyle={{ paddingBottom: 140 }}
+          style={{ marginTop: 5 }}
           data={
             radioButtonThatIsActivated === 'ALL'
               ? contributors

@@ -8,20 +8,27 @@ function Button({
   backgroundColor = '#2855a2',
   disabled,
   small,
+  height,
+  width,
   border,
+  borderRadius,
   icon,
   color = 'white',
 }) {
   return (
     <TouchableOpacity
       style={{
-        height: small ? 50 : 60,
+        height: height ? height : small ? 50 : 60,
         backgroundColor: backgroundColor,
         borderColor: border ? 'black' : backgroundColor,
         borderWidth: 2,
-        borderRadius: 10,
+        borderRadius: borderRadius || 10,
         justifyContent: 'space-around',
-        width: small ? 130 : Dimensions.get('window').width - 50,
+        width: width
+          ? width
+          : small
+          ? 130
+          : Dimensions.get('window').width - 50,
         flexDirection: 'row',
       }}
       onPress={onPress}
@@ -29,7 +36,7 @@ function Button({
     >
       {icon && (
         <View style={{ justifyContent: 'center', paddingLeft: 5 }}>
-          <Icon type="Entypo" name="check" />
+          <Icon type="Entypo" name="check" style={{ fontSize: 18 }} />
         </View>
       )}
       <View style={{ justifyContent: 'center', paddingRight: icon ? 5 : 0 }}>
@@ -39,7 +46,7 @@ function Button({
             fontFamily: 'Helvetica',
             fontWeight: 'bold',
             color: color,
-            fontSize: 17,
+            fontSize: 15,
           }}
         >
           {text}

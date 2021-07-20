@@ -10,7 +10,7 @@ function Paragraph({ children, left, color, bold }) {
         fontFamily: 'Helvetica',
         fontWeight: bold ? 'bold' : 'normal',
         color: color || '#000000',
-        fontSize: 17,
+        fontSize: 15,
         marginTop: 15,
         marginBottom: 15,
       }}
