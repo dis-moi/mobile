@@ -1,6 +1,11 @@
 package com.dismoi.scout.accessibility
 
 import android.accessibilityservice.AccessibilityService
+
+/* 
+  The configuration of an accessibility service is contained in the 
+  AccessibilityServiceInfo class
+*/
 import android.accessibilityservice.AccessibilityServiceInfo
 import android.content.Context
 import android.content.Intent
@@ -48,15 +53,35 @@ class BackgroundService : AccessibilityService() {
 
   private val previousUrlDetections: HashMap<String, Long> = HashMap()
 
+  /* 
+    This system calls this method when it successfully connects to your accessibility service
+  */
+  // configure my service in there
   @RequiresApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
   override fun onServiceConnected() {
+
     val info = serviceInfo
-
+    
+    // Set the type of events that this service wants to listen to. Others
+    // won't be passed to this service
+    /* 
+      Represents the event of changing the content of a window and more specifically 
+      the sub-tree rooted at the event's source
+    */
     info.eventTypes = AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED
-    info.feedbackType = AccessibilityServiceInfo.FEEDBACK_VISUAL
-    info.flags = AccessibilityServiceInfo.FLAG_REPORT_VIEW_IDS or
-      AccessibilityServiceInfo.FLAG_RETRIEVE_INTERACTIVE_WINDOWS
 
+    /* 
+      info.packageNames is not set because we want to receive event from
+      all packages
+    */
+
+    info.feedbackType = AccessibilityServiceInfo.FEEDBACK_VISUAL
+    info.flags = AccessibilityServiceInfo.FLAG_REPORT_VIEW_IDS
+
+    /* 
+      The minimal period in milliseconds between two accessibility events of 
+      the same type are sent to this service
+    */
     info.notificationTimeout = NOTIFICATION_TIMEOUT
 
     this.serviceInfo = info
@@ -64,6 +89,7 @@ class BackgroundService : AccessibilityService() {
 
   @RequiresApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
   private fun captureUrl(info: AccessibilityNodeInfo, config: SupportedBrowserConfig): String? {
+    // Can get URL with FLAG_REPORT_VIEW_IDS
     val nodes = info.findAccessibilityNodeInfosByViewId(config.addressBarId)
     if (nodes == null || nodes.size <= 0) {
       return null
@@ -105,9 +131,18 @@ class BackgroundService : AccessibilityService() {
     return AccessibilityEvent.eventTypeToString(event.eventType).contains("WINDOW")
   }
 
+  /*
+    This method is called back by the system when it detects an 
+    AccessibilityEvent that matches the event filtering parameters 
+    specified by your accessibility service
+   */
   @RequiresApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
   override fun onAccessibilityEvent(event: AccessibilityEvent) {
-    val parentNodeInfo = event.source ?: return
+    if (getRootInActiveWindow() == null) {
+      return
+    }
+
+    val parentNodeInfo: AccessibilityNodeInfo = event.source ?: return
 
     if (overlayIsActivated(applicationContext) && isWindowChangeEvent(event)) {
       if (outsideChrome(parentNodeInfo)) {
