@@ -110,12 +110,14 @@ class BackgroundService : AccessibilityService() {
     val parentNodeInfo = event.source ?: return
 
     if (overlayIsActivated(applicationContext) && isWindowChangeEvent(event)) {
-      if (outsideChrome(parentNodeInfo)) {
+      val packageName = event.packageName.toString()
+
+      if (outsideChrome(parentNodeInfo) || isLauncherPackage(packageName)) {
         _hide = "true"
         handler.post(runnableCode)
         return
       }
-      val packageName = event.packageName.toString()
+
       var browserConfig: SupportedBrowserConfig? = null
 
       for (supportedConfig in getSupportedBrowsers()) {
