@@ -81,7 +81,7 @@ function Finished() {
                       width={160}
                       borderRadius={8}
                       onPress={() => {
-                        setItemIds([...itemIds, String(item.id)]);
+                        setItemIds([...itemIds, item.id]);
                         SharedPreferences.setItem(
                           item.name,
                           `{"id": ${item.id}}`
