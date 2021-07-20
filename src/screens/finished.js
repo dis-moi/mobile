@@ -191,6 +191,7 @@ function Finished() {
 
       {contributors.length > 0 && (
         <FlatList
+          contentContainerStyle={{ paddingBottom: 140 }}
           style={{ marginTop: 5 }}
           data={
             radioButtonThatIsActivated === 'ALL'
