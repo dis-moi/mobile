@@ -22,7 +22,8 @@ function RadioButtons({ onPress }) {
         justifyContent: 'space-between',
         alignItems: 'center',
         alignContent: 'center',
-        padding: 10,
+        padding: 15,
+        paddingBottom: 6,
         height: 60,
         backgroundColor: 'white',
       }}

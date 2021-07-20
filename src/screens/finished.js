@@ -3,6 +3,7 @@ import {
   FlatList,
   View,
   TouchableOpacity,
+  Text,
   ActivityIndicator,
 } from 'react-native';
 import { Body, Left, CardItem } from 'native-base';
