@@ -7,7 +7,7 @@ function Title({ children, left, fontSize }) {
       style={{
         textAlign: left ? 'left' : 'center',
         fontFamily: 'Helvetica-Bold',
-        fontSize: fontSize || 25,
+        fontSize: fontSize || 18,
         letterSpacing: 0.73,
         color: '#000000',
       }}
