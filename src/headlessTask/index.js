@@ -142,18 +142,14 @@ function getNoticeIdsThatAreNotDeleted(contributors, noticesToShow) {
 }
 
 let i = 0;
-let url = '';
 
 const HeadlessTask = async (taskData) => {
   if (i === 0) {
-    console.log('INITIALIZE');
     callActionListeners();
     i++;
   }
 
   if (taskData.hide === 'true') {
-    console.log('____________HIDE___________________________');
-
     FloatingModule.hideFloatingDisMoiBubble().then(() =>
       FloatingModule.hideFloatingDisMoiMessage()
     );
