@@ -148,12 +148,6 @@ class BackgroundService : AccessibilityService() {
     if (overlayIsActivated(applicationContext) && isWindowChangeEvent(event)) {
       val packageName = event.packageName.toString()
 
-      //if (isLauncherPackage(packageName) && parentNodeInfo.className.toString() !== "android.widget.FrameLayout") {
-        //_hide = "true"
-        //handler.post(runnableCode)
-        //return
-      //}
-
       if (outsideChrome(parentNodeInfo)) {
         _hide = "true"
         handler.post(runnableCode)
@@ -192,9 +186,6 @@ class BackgroundService : AccessibilityService() {
         if (capturedUrl == null) {
           return
         }
-
-        Log.d("Notification", "__________________________________")
-        Log.d("Notification", capturedUrl)
 
         _url = capturedUrl
         _hide = "false"
