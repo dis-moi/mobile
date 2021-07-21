@@ -157,7 +157,7 @@ function Finished() {
             small
             text={'Suivre'}
             onPress={() => {
-              setItemIds([...itemIds, String(contributorForModal.id)]);
+              setItemIds([...itemIds, contributorForModal.id]);
               SharedPreferences.setItem(
                 contributorForModal.name,
                 `{"id": ${contributorForModal.id}}`
