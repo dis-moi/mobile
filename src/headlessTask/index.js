@@ -9,7 +9,6 @@ import SharedPreferences from 'react-native-shared-preferences';
 import 'moment/min/locales';
 
 let _notices = [];
-let _noticeIds = [];
 
 async function getNoticeIds(eventMessageFromChromeURL, matchingContexts, HTML) {
   const noticeIds = [];
@@ -219,8 +218,6 @@ const HeadlessTask = async (taskData) => {
                     (noticeToShow) => noticeToShow.id === id
                   );
                 });
-
-                _noticeIds = noticeIdNotDeleted.length;
 
                 FloatingModule.showFloatingDisMoiBubble(
                   10,
