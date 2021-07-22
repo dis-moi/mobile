@@ -203,9 +203,6 @@ class FloatingModule(
       }
     })
     bubbleDisMoiView!!.setShouldStickToWall(true)
-
-    Log.d("Notification", "SHOW BUBBLE")
-
     bubblesManager!!.addDisMoiBubble(bubbleDisMoiView, x, y)
   }
 
