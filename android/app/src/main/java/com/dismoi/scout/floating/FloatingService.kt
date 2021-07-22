@@ -34,14 +34,8 @@ class FloatingService : Service() {
   private fun recycleBubble(bubble: Bubble) {
     Handler(Looper.getMainLooper()).post {
       getWindowManager()!!.removeView(bubble)
-      for (cachedBubble in bubbles) {
-        if (cachedBubble === bubble) {
-          bubble.notifyBubbleRemoved()
-          bubbles.remove(cachedBubble)
-          bubblesTrash = null
-          break
-        }
-      }
+      bubbles.clear()
+      bubblesTrash = null
     }
   }
 

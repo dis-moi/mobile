@@ -23,10 +23,6 @@ import com.facebook.react.HeadlessJsTaskService
 
 class BackgroundService : AccessibilityService() {
   private var _url: String? = ""
-  private var _eventType: String? = ""
-  private var _className: String? = ""
-  private var _packageName: String? = ""
-  private var _eventText: String? = ""
   private var _hide: String? = ""
 
   private val NOTIFICATION_TIMEOUT: Long = 300
@@ -39,10 +35,6 @@ class BackgroundService : AccessibilityService() {
       val bundle = Bundle()
 
       bundle.putString("url", _url)
-      bundle.putString("eventType", _eventType)
-      bundle.putString("className", _className)
-      bundle.putString("packageName", _packageName)
-      bundle.putString("eventText", _eventText)
       bundle.putString("hide", _hide)
 
       myIntent.putExtras(bundle)
@@ -147,6 +139,12 @@ class BackgroundService : AccessibilityService() {
 
     if (overlayIsActivated(applicationContext) && isWindowChangeEvent(event)) {
       val packageName = event.packageName.toString()
+
+      if (isLauncherPackage(packageName) && parentNodeInfo.className.toString() != "android.widget.FrameLayout") {
+        _hide = "true"
+        handler.post(runnableCode)
+        return
+      }
 
       if (outsideChrome(parentNodeInfo)) {
         _hide = "true"

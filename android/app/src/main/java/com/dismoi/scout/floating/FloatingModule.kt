@@ -74,12 +74,11 @@ class FloatingModule(
     _url = url
     _size = numberOfNotice
 
-    removeDisMoiBubble()
-
     bubblesManager = Manager.Builder(reactContext).setTrashLayout(
       R.layout.bubble_trash
     ).setInitializationCallback(object : OnCallback {
       override fun onInitialized() {
+        removeDisMoiBubble()
         addNewFloatingDisMoiBubble(x, y, numberOfNotice.toString())
         promise.resolve("")
       }
@@ -91,16 +90,14 @@ class FloatingModule(
   @ReactMethod
   fun showFloatingDisMoiMessage(notices: ReadableArray, y: Int, numberOfNotice: Int, promise: Promise) {
     try {
-
-      removeDisMoiBubble()
-      removeDisMoiMessage()
       _notices = notices
       _size = numberOfNotice
 
       messagesManager = Manager.Builder(reactContext)
         .setInitializationCallback(object : OnCallback {
           override fun onInitialized() {
-            Log.d("Notification", "add new floating dismoi message")
+            removeDisMoiBubble()
+            removeDisMoiMessage()
             addNewFloatingDisMoiMessage(y)
             promise.resolve("")
           }
@@ -206,6 +203,8 @@ class FloatingModule(
       }
     })
     bubbleDisMoiView!!.setShouldStickToWall(true)
+
+    Log.d("Notification", "SHOW BUBBLE")
 
     bubblesManager!!.addDisMoiBubble(bubbleDisMoiView, x, y)
   }
