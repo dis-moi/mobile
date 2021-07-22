@@ -1,36 +1,41 @@
 ---
-name: 🐛 Bug Report
+name: 🐛 Dismoi Android Chrome App Bug Report
 about: Use this template for reporting a bug
 ---
 
-<!--
-Please read FAQ.md and docs.joinpeertube.org first.
-Please make sure your issue doesn't stem from a third-party plugin.
-Please search among past open/closed issues for a similar one beforehand:
-- https://github.com/Chocobozzz/PeerTube/issues?q=
-- https://framacolibri.org/c/peertube
+## 🐛 Dismoi Android Chrome App - Bug Report
 
-All done? Then please fill the following mandatory form to help us triage your issue.
--->
+---
+### 1. Configuration
 
-**Describe the current behavior**
+* Device brand[^1]:
+* Device name[^2]:
+* Device model number[^3]:
+* Android OS version[^4]:
+* Browser: **Chrome**
+* Browser version[^5]:
+* Dismoi App version[^6]:
+---
+### 2. Describe the current behavior:
 
-**Steps to reproduce:**
+Write here...
 
-1.
-2.
-3.
+---
+### 3. Steps to reproduce:
 
-**Describe the expected behavior**
+    a.
+    b.
+    c.
+---
+### 4. Describe the expected behavior
 
-**Additional information**
+Write here...
 
-* PeerTube instance:
-  * URL:
-  * version:
-  * NodeJS version:
-  * Ffmpeg version:
 
-* Browser name, version and platforms on which you could reproduce the bug:
-* Link to browser console log if relevant:
-* Link to server log if relevant (`journalctl` or `/var/www/peertube/storage/logs/`):
+[^1]: Samsung, etc... 
+[^2]: Galaxy S8, etc... 
+[^3]: settings > about phone
+[^4]: settings > about phone > Android version
+[^5]: settings > apps > Chrome > version number at the bottom
+[^6]: settings > apps > Dismoi > version number at the bottom
+
