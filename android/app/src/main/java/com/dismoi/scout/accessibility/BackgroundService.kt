@@ -14,6 +14,7 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.provider.Settings.canDrawOverlays
+import android.util.Log
 import android.view.accessibility.AccessibilityEvent
 import android.view.accessibility.AccessibilityNodeInfo
 import androidx.annotation.RequiresApi
@@ -147,7 +148,7 @@ class BackgroundService : AccessibilityService() {
     if (overlayIsActivated(applicationContext) && isWindowChangeEvent(event)) {
       val packageName = event.packageName.toString()
 
-      if (outsideChrome(parentNodeInfo) || isLauncherPackage(packageName)) {
+      if (outsideChrome(parentNodeInfo)) {
         _hide = "true"
         handler.post(runnableCode)
         return

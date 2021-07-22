@@ -6,6 +6,8 @@ import android.graphics.Typeface
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.StrictMode
+import android.os.StrictMode.ThreadPolicy
 import android.text.Html
 import android.text.SpannableStringBuilder
 import android.text.Spanned
@@ -30,13 +32,10 @@ import com.synnapps.carouselview.CarouselView
 import com.synnapps.carouselview.ViewListener
 import java.net.URL
 
+
 class FloatingModule(
   private val reactContext: ReactApplicationContext
 ) : ReactContextBaseJavaModule(reactContext) {
-
-  private var bubblesService: FloatingService? = null
-
-  var messageIsInitialized = false
 
   private var bubblesManager: Manager? = null
 
@@ -65,28 +64,6 @@ class FloatingModule(
   }
 
   @ReactMethod
-  fun initialize(promise: Promise) {
-    bubblesManager = Manager.Builder(reactContext).setTrashLayout(
-      R.layout.bubble_trash
-    ).setInitializationCallback(object : OnCallback {
-      override fun onInitialized() {
-      }
-    }).build()
-
-    messagesManager = Manager.Builder(reactContext)
-    .setInitializationCallback(object : OnCallback {
-      override fun onInitialized() {
-        messageIsInitialized = true
-
-        promise.resolve("")
-      }
-    }).build()
-
-    bubblesManager!!.initialize()
-    messagesManager!!.initialize()
-  }
-
-  @ReactMethod
   fun showFloatingDisMoiBubble(
     x: Int,
     y: Int,
@@ -97,24 +74,39 @@ class FloatingModule(
     _url = url
     _size = numberOfNotice
 
-    addNewFloatingDisMoiBubble(x, y, numberOfNotice.toString())
-    promise.resolve("")
+    removeDisMoiBubble()
+
+    bubblesManager = Manager.Builder(reactContext).setTrashLayout(
+      R.layout.bubble_trash
+    ).setInitializationCallback(object : OnCallback {
+      override fun onInitialized() {
+        addNewFloatingDisMoiBubble(x, y, numberOfNotice.toString())
+        promise.resolve("")
+      }
+    }).build()
+
+    bubblesManager!!.initialize()
   }
 
   @ReactMethod
   fun showFloatingDisMoiMessage(notices: ReadableArray, y: Int, numberOfNotice: Int, promise: Promise) {
     try {
-      if (messageDisMoiView != null) {
-        removeDisMoiMessage()
-        messageDisMoiView = null
-      }
 
       removeDisMoiBubble()
+      removeDisMoiMessage()
       _notices = notices
       _size = numberOfNotice
 
-      addNewFloatingDisMoiMessage(y)
-      promise.resolve("")
+      messagesManager = Manager.Builder(reactContext)
+        .setInitializationCallback(object : OnCallback {
+          override fun onInitialized() {
+            Log.d("Notification", "add new floating dismoi message")
+            addNewFloatingDisMoiMessage(y)
+            promise.resolve("")
+          }
+        }).build()
+
+      messagesManager!!.initialize()
     } catch (e: Exception) {
       promise.reject("0", "")
     }
@@ -140,8 +132,9 @@ class FloatingModule(
   }
 
   @ReactMethod
-  fun hideFloatingDisMoiMessage() {
+  fun hideFloatingDisMoiMessage(promise: Promise) {
     removeDisMoiMessage()
+    promise.resolve("")
   }
 
   /**
@@ -294,11 +287,18 @@ class FloatingModule(
         sendEventToReactNative("DELETE_NOTICE", position.toString())
       }
 
-      val imageView: ImageView = customView!!.findViewById(R.id.contributorProfile) as ImageView
+      val SDK_INT = Build.VERSION.SDK_INT
+      if (SDK_INT > 8) {
+        val policy = ThreadPolicy.Builder()
+          .permitAll().build()
+        StrictMode.setThreadPolicy(policy)
 
-      val URL = URL(url)
-      val bmp = BitmapFactory.decodeStream(URL.openConnection().getInputStream())
-      imageView.setImageBitmap(bmp)
+        val imageView: ImageView = customView!!.findViewById(R.id.contributorProfile) as ImageView
+
+        val URL = URL(url)
+        val bmp = BitmapFactory.decodeStream(URL.openConnection().getInputStream())
+        imageView.setImageBitmap(bmp)
+      }
 
       return customView
     }
