@@ -47,12 +47,12 @@
  | `Chrome` | Notice | click on Dismoi bubble | opens contribution screen over Chrome |  | 
  | `Chrome` | Contribution | click on link inside the captainfact contribution | opens captainfact site in new Chrome tab |  | 
  | `Chrome` | Contribution | go back to previous tab, close contribution window (X) | contribution window closes, Dismoi Bubble notification on youtube is grey not red |  | 
- | `both` | Notice | subscribe to iboycott, amazon antidote, Ar memestra e breizh then open amazon.fr | Dismoi bubble appears OVER WEBSITE with 3 contributions |  | 
+ | `both` | Notice | subscribe to Le Kaba, iboycott, amazon antidote, Ar memestra e breizh then open amazon.fr | Dismoi bubble appears OVER WEBSITE with 3 contributions |  | 
  | `Chrome` | Contribution | click on Dismoi bubble | contribution screen appears over Chrome with 3 contributions |  | 
  | `Chrome` | Contribution | swipe between contributions | contributions move from left to right and lock in the center |  | 
  | `Chrome` | Contribution | scroll inside contribution | scroll works |  | 
  | `Chrome` | Contribution | click on bin | deleted contribution disappears, next contribution comes center |  | 
- | `Chrome` | Contribution | visit www. , click on bubble, click on bin | contribution window closes, no Dismoi bubble over page |  | 
+ | `Chrome` | Contribution | visit https://www.boulanger.com/c/toutes-les-yaourtieres-fromageres , click on bubble, click on bin | contribution window closes, no Dismoi bubble over page |  | 
  | `Chrome` | Notice | open amazon.fr, drag Dismoi bubble into the close (X) area | Dismoi bubble disappears |  | 
  | `Chrome` | Notice | Reopen amazon.fr | Dismoi bubble does not appear |  | 
  | `Chrome` | Notice | Go to the link see an example of Colibri pour la planête type backmarket.fr in url press enter | Dismoi bubble should appear |  | 
