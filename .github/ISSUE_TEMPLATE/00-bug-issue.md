@@ -8,13 +8,19 @@ about: Use this template for reporting a bug
 ---
 ### 1. Configuration
 
-* Device brand[^1]:
-* Device name[^2]:
-* Device model number[^3]:
-* Android OS version[^4]:
+* Device brand:
+`(Samsung, etc...)`
+* Device name:
+`(Galaxy S8, etc...)`
+* Device model number:
+`(settings > about phone)`
+* Android OS version:
+`(settings > about phone > Android version)`
 * Browser: **Chrome**
-* Browser version[^5]:
-* Dismoi App version[^6]:
+* Browser version:
+`(settings > apps > Chrome > bottom of page)`
+* Dismoi App version: 
+`(settings > apps > Dismoi > bottom of page)`
 ---
 ### 2. Describe the current behavior:
 
@@ -31,11 +37,7 @@ Write here...
 
 Write here...
 
+---
+### 4. Additional details (optional)
 
-[^1]: Samsung, etc... 
-[^2]: Galaxy S8, etc... 
-[^3]: settings > about phone
-[^4]: settings > about phone > Android version
-[^5]: settings > apps > Chrome > version number at the bottom
-[^6]: settings > apps > Dismoi > version number at the bottom
-
+Write here...
