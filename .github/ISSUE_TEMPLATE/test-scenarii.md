@@ -35,13 +35,13 @@
  | `Dismoi` | Contributors | click on subscribed button for same contributor | button label changes back to subscribe |  | 
  | `Dismoi` | Subscribe popup | while unsubscribed, click on the example link | opens subscribe popup |  | 
  | `Dismoi` | Subscribe popup | close subscribe popup | popup closes |  | 
- | `Dismoi` | Subscribe popup | subscribe from subscribe popup | button label changes to see example |  | 
+ | `Dismoi` | Subscribe popup | click on the example link > subscribe from subscribe popup | button label changes to see example |  | 
  | `Dismoi` | Subscribe popup | close popup after subscribe from popup | popup closes, subscribed to contributor |  | 
  | `Dismoi` | Subscribe popup | click on see example button from popup | opens Chrome |  | 
- | `Settings` | App settings | settings > apps > Dismoi > Force stop | app closes |  | 
- | `Settings` | App settings | settings > apps > Dismoi > uninstall | app uninstalls |  | 
- | `Settings` | App settings | settings > apps > Dismoi > appear on top > Disable | Dismoi app opens on authorisations screens with Overlay disabled if you already did the onboarding |  | 
- | `Settings` | App settings | settings > accessibility > services > Dismoi > Disable | Dismoi app opens on authorisations screens with Accessibility disabled if you already did the onboarding |  | 
+ | `Settings` | App settings | settings > apps > Dismoi > appear on top > Disable | Dismoi app opens on authorisations screens with Overlay toggle off and finish button greyed out |  |
+ | `Dismoi` | Settings | click on overlay toggle > accept overlay setting > opens contributor selection page |  |
+ | `Settings` | App settings | settings > accessibility > services > Dismoi > Disable | Dismoi app opens on authorisations screens with Accessibility toggle off and finish button greyed out |  | 
+  | `Dismoi` | Settings | click on accessibility toggle > accept accessibility setting > opens contributor selection page |  |
  | `Chrome` | Notice | subscribe to alertoo and open example | Nespresso site opens in Chrome with Dismoi bubble on top |  | 
  | `Chrome` | Notice | Drag Dismoi bubble to the right if the screen and release | Dismoi bubble snaps to the right of the screen |  | 
  | `Dismoi` | Contributors | subscribe to captain fact and open example | Youtube site opens in Chrome with Dismoi bubble on top |  | 
@@ -57,4 +57,5 @@
  | `Chrome` | Notice | open https://amazon.fr, drag Dismoi bubble into the close (X) area | Dismoi bubble disappears |  | 
  | `Chrome` | Notice | Reopen amazon.fr | Dismoi bubble does not appear |  | 
  | `Chrome` | Notice | Go to the link see an example of Colibri pour la planête type backmarket.fr in url press enter | Dismoi bubble should appear |  | 
-
+ | `Settings` | App settings | settings > apps > Dismoi > Force stop | app closes |  | 
+ | `Settings` | App settings | settings > apps > Dismoi > uninstall | app uninstalls |  | 
