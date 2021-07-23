@@ -26,11 +26,11 @@
  | `Dismoi` | Accessibility | click on accessibility toggle | goes to Settings > Accessibility menu |  | 
  | `Settings` | Accessibility settings | go to services > Dismoi > turn accessibility ON > confirm > navigate back to Dismoi | accessibility toggle is ON, finish button is active (blue) |  | 
  | `Dismoi` | Contributors | click finish button | goes to contributor selection page |  | 
- | `Dismoi` | Contributors | click on category radio button 1 | contributor list updates |  | 
  | `Dismoi` | Contributors | click on category radio button 2 | contributor list updates |  | 
  | `Dismoi` | Contributors | click on category radio button 3 | contributor list updates |  | 
  | `Dismoi` | Contributors | click on category radio button 4 | contributor list updates |  | 
  | `Dismoi` | Contributors | click on category radio button 5 | contributor list updates |  | 
+ | `Dismoi` | Contributors | click on category radio button 1 | contributor list updates |  | 
  | `Dismoi` | Contributors | click on follow button for 1 contributor | button label changes to subscribed |  | 
  | `Dismoi` | Contributors | click on subscribed button for same contributor | button label changes back to subscribe |  | 
  | `Dismoi` | Subscribe popup | while unsubscribed, click on the example link | opens subscribe popup |  | 
