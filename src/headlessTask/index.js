@@ -159,64 +159,63 @@ const HeadlessTask = async (taskData) => {
     const HTML = res[1];
     const eventMessageFromChromeURL = taskData.url;
     if (eventMessageFromChromeURL) {
-      if (taskData.eventText === '') {
-        let noticeIds = await getNoticeIds(
-          eventMessageFromChromeURL,
-          matchingContexts,
-          HTML
-        );
-        const uniqueIds = [...new Set(noticeIds)];
+      let noticeIds = await getNoticeIds(
+        eventMessageFromChromeURL,
+        matchingContexts,
+        HTML
+      );
+      const uniqueIds = [...new Set(noticeIds)];
 
-        let notices = await Promise.all(
-          uniqueIds.map((noticeId) =>
-            fetch(
-              `https://notices.bulles.fr/api/v3/notices/${noticeId}`
-            ).then((response) => response.json())
-          )
-        );
-        if (notices.length > 0) {
-          const noticesToShow = notices.map((result) => {
-            const formattedDate = formatDate(result);
+      let notices = await Promise.all(
+        uniqueIds.map((noticeId) =>
+          fetch(
+            `https://notices.bulles.fr/api/v3/notices/${noticeId}`
+          ).then((response) => response.json())
+        )
+      );
+      if (notices.length > 0) {
+        const noticesToShow = notices.map((result) => {
+          const formattedDate = formatDate(result);
 
-            result.modified = formattedDate;
-            return result;
-          });
+          result.modified = formattedDate;
+          return result;
+        });
 
-          SharedPreferences.getAll(function (values) {
-            const contributors = [
-              ...new Set(
-                values
-                  .map((result) => {
-                    if (result[0] !== 'url') {
-                      return JSON.parse(result[1]);
-                    }
-                  })
-                  .filter(Boolean)
-              ),
-            ];
+        SharedPreferences.getAll(function (values) {
+          const contributors = [
+            ...new Set(
+              values
+                .map((result) => {
+                  if (result[0] !== 'url') {
+                    return JSON.parse(result[1]);
+                  }
+                })
+                .filter(Boolean)
+            ),
+          ];
 
-            const noticeIdNotDeleted = getNoticeIdsThatAreNotDeleted(
-              contributors,
-              noticesToShow
-            );
+          const noticeIdNotDeleted = getNoticeIdsThatAreNotDeleted(
+            contributors,
+            noticesToShow
+          );
 
-            if (noticeIdNotDeleted.length > 0) {
-              _notices = noticeIdNotDeleted.map((id) => {
-                return noticesToShow.find(
-                  (noticeToShow) => noticeToShow.id === id
-                );
-              });
-              FloatingModule.showFloatingDisMoiBubble(
-                10,
-                1500,
-                notices.length,
-                eventMessageFromChromeURL
-              ).then(() => {
-                noticeIds = [];
-              });
-            }
-          });
-        }
+          if (noticeIdNotDeleted.length > 0) {
+            _notices = noticeIdNotDeleted.map((id) => {
+              return noticesToShow.find(
+                (noticeToShow) => noticeToShow.id === id
+              );
+            });
+
+            FloatingModule.showFloatingDisMoiBubble(
+              10,
+              1500,
+              notices.length,
+              eventMessageFromChromeURL
+            ).then(() => {
+              noticeIds = [];
+            });
+          }
+        });
       }
     }
   });

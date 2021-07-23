@@ -11,6 +11,10 @@ class Chrome {
   val _parentNodeInfo: AccessibilityNodeInfo = null
   var _browserConfig: SupportedBrowserConfig = null
 
+  fun isLauncherPackage(): Boolean {
+    return "com.android.systemui" == _packageName || "com.android.launcher3" == _packageName
+  }
+
   @RequiresApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
   fun captureUrl(): String? {
     // Can get URL with FLAG_REPORT_VIEW_IDS
@@ -30,6 +34,10 @@ class Chrome {
   }
 
   fun outsideChrome(): Boolean {
+    if (isLauncherPackage(packageName) && parentNodeInfo.className.toString() != "android.widget.FrameLayout") {
+      return true
+    }
+
     return _parentNodeInfo.childCount > 0 &&
       _parentNodeInfo.className.toString() == "android.widget.FrameLayout" &&
       _parentNodeInfo.getChild(0).className.toString() == "android.view.View"

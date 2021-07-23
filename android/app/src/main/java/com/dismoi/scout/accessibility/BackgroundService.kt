@@ -22,6 +22,8 @@ import com.dismoi.scout.accessibility.BackgroundModule.Companion.sendEventFromAc
 import com.facebook.react.HeadlessJsTaskService
 
 class BackgroundService : AccessibilityService() {
+  private var _url: String? = ""
+  private var _hide: String? = ""
 
   private val NOTIFICATION_TIMEOUT: Long = 300
 
@@ -33,10 +35,6 @@ class BackgroundService : AccessibilityService() {
       val bundle = Bundle()
 
       bundle.putString("url", _url)
-      bundle.putString("eventType", _eventType)
-      bundle.putString("className", _className)
-      bundle.putString("packageName", _packageName)
-      bundle.putString("eventText", _eventText)
       bundle.putString("hide", _hide)
 
       myIntent.putExtras(bundle)
@@ -82,10 +80,6 @@ class BackgroundService : AccessibilityService() {
     this.serviceInfo = info
   }
 
-  fun isLauncherPackage(packageName: CharSequence): Boolean {
-    return "com.android.systemui" == packageName || "com.android.launcher3" == packageName
-  }
-
   private fun overlayIsActivated(applicationContext: Context): Boolean {
     return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
       canDrawOverlays(applicationContext)
@@ -116,6 +110,7 @@ class BackgroundService : AccessibilityService() {
 
       val chrome: Chrome = Chrome()
       chrome._parentNodeInfo = parentNodeInfo
+      chrome._packageName = packageName
 
       if (chrome.outsideChrome()) {
         _hide = "true"
@@ -140,7 +135,7 @@ class BackgroundService : AccessibilityService() {
 
       val capturedUrl = chrome.captureUrl()
 
-      if (chromeSearchBarEditingIsActivated()) {
+      if (chrome.chromeSearchBarEditingIsActivated()) {
         _hide = "true"
         handler.post(runnableCode)
         return
