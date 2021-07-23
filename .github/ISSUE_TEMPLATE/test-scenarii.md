@@ -19,11 +19,12 @@
  | `Dismoi` | Tutorial | on tuto page 1, click suivant | goes to tuto page 2 |  | 
  | `Dismoi` | Tutorial | on tuto page 1, click back (native button) | minimizes Dismoi app |  | 
  | `Dismoi` | Tutorial | on tuto page 2, click suivant | goes to tuto page 3 |  | 
- | `Dismoi` | Tutorial | on tuto page 2, click suivant | goes to tuto page 3 |  | 
- | `Dismoi` | Accessibility | click on accessibility toggle | go to accessibility menu, 2 x toggles are off, finish button inactive (grey) |  | 
- | `Settings` | Accessibility settings | go to services > Dismoi > turn accessibility ON and navigate back to Dismoi | accessibility toggle is ON, finish button is still inactive (grey) |  | 
- | `Dismoi` | Overlay | click on overlay toggle | go to Dismoi overlay setting |  | 
- | `Settings` | Overlay settings | turn overlay ON and navigate back to Dismoi | overlay toggle is ON, finish button is active (blue) |  | 
+ | `Dismoi` | Tutorial | on tuto page 3, click suivant | goes to tuto page 4 |  |
+ | `Dismoi` | Tutorial | on tuto page 4, click suivant | goes to accessibility options, 2 x toggles are off, finish button inactive (grey) |  |
+  | `Dismoi` | Overlay | click on overlay toggle | go to Dismoi overlay setting |  | 
+ | `Settings` | Overlay settings | turn overlay ON > navigate back to Dismoi | overlay toggle is ON, finish button is still inactive (grey) |  | 
+ | `Dismoi` | Accessibility | click on accessibility toggle | goes to Settings > Accessibility menu |  | 
+ | `Settings` | Accessibility settings | go to services > Dismoi > turn accessibility ON > confirm > navigate back to Dismoi | accessibility toggle is ON, finish button is active (blue) |  | 
  | `Dismoi` | Contributors | click finish button | goes to contributor selection page |  | 
  | `Dismoi` | Contributors | click on category radio button 1 | contributor list updates |  | 
  | `Dismoi` | Contributors | click on category radio button 2 | contributor list updates |  | 
