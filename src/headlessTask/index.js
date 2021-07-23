@@ -49,11 +49,6 @@ function callActionListeners() {
     return FloatingModule.hideFloatingDisMoiMessage().then(() => {});
   });
 
-  DeviceEventEmitter.addListener('floating-dismoi-bubble-remove', (e) => {
-    // What to do when user press on the message
-    console.log('FLOATING DISMOI BUBBLE REMOVE');
-  });
-
   DeviceEventEmitter.addListener('URL_CLICK_LINK', (event) => {
     FloatingModule.hideFloatingDisMoiBubble().then(() =>
       FloatingModule.hideFloatingDisMoiMessage()

@@ -165,11 +165,7 @@ class FloatingModule(
     movementMethod = LinkMovementMethod.getInstance()
   }
 
-  private fun addNewFloatingDisMoiMessage(y: Int) {
-    messageDisMoiView = LayoutInflater.from(reactContext).inflate(
-      R.layout.highlight_messages, messageDisMoiView, false
-    ) as Message
-
+  private fun configureCarouselView(messageDisMoiView: Message?) {
     val carouselView = messageDisMoiView!!.findViewById(
       R.id.carouselView
     ) as CarouselView
@@ -177,13 +173,38 @@ class FloatingModule(
     carouselView!!.pageCount = _size
 
     carouselView!!.setViewListener(viewListener)
+  }
 
+  private fun configureCloseButton(messageDisMoiView: Message?) {
     val imageButton = messageDisMoiView!!.findViewById<View>(R.id.close) as ImageButton
     imageButton.setOnClickListener {
       sendEventToReactNative("floating-dismoi-message-press", "")
     }
+  }
+
+  private fun addNewFloatingDisMoiMessage(y: Int) {
+    messageDisMoiView = LayoutInflater.from(reactContext).inflate(
+      R.layout.highlight_messages, messageDisMoiView, false
+    ) as Message
+
+    configureCarouselView(messageDisMoiView)
+
+    configureCloseButton(messageDisMoiView)
 
     messagesManager!!.addDisMoiMessage(messageDisMoiView!!, y)
+  }
+
+  private fun configureNumberOfNoticeIcon(bubbleDisMoiView: Bubble?, numberOfNotice: String) {
+    var textView: TextView? = bubbleDisMoiView!!.findViewById(R.id.number_of_notice)
+    textView!!.text = numberOfNotice
+  }
+
+  private fun configureClickOnBubbleAction(bubbleDisMoiView: Bubble?) {
+    bubbleDisMoiView!!.setOnBubbleClickListener(object : OnBubbleClickListener {
+      override fun onBubbleClick(bubble: Bubble?) {
+        sendEventToReactNative("floating-dismoi-bubble-press", "")
+      }
+    })
   }
 
   private fun addNewFloatingDisMoiBubble(x: Int, y: Int, numberOfNotice: String) {
@@ -191,20 +212,10 @@ class FloatingModule(
       R.layout.bubble, bubbleDisMoiView, false
     ) as Bubble
 
-    var textView: TextView? = bubbleDisMoiView!!.findViewById(R.id.number_of_notice)
-    textView!!.text = numberOfNotice
+    configureNumberOfNoticeIcon(bubbleDisMoiView, numberOfNotice)
 
-    bubbleDisMoiView!!.setOnBubbleRemoveListener(object : OnBubbleRemoveListener {
-      override fun onBubbleRemoved(bubble: Bubble?) {
-        bubbleDisMoiView = null
-        sendEventToReactNative("floating-dismoi-bubble-remove", "")
-      }
-    })
-    bubbleDisMoiView!!.setOnBubbleClickListener(object : OnBubbleClickListener {
-      override fun onBubbleClick(bubble: Bubble?) {
-        sendEventToReactNative("floating-dismoi-bubble-press", "")
-      }
-    })
+    configureClickOnBubbleAction(bubbleDisMoiView)
+
     bubbleDisMoiView!!.setShouldStickToWall(true)
 
     bubblesManager!!.addDisMoiBubble(bubbleDisMoiView, x, y)
@@ -239,6 +250,55 @@ class FloatingModule(
     }
   }
 
+  private fun configureImageProfile(customView: View, disMoiContributorNameMap: ReadableMap?) {
+    var url: String? = disMoiContributorNameMap!!.getMap("avatar")!!.getMap("normal")!!.getString("url")
+    val imageView: ImageView = customView!!.findViewById(R.id.contributorProfile) as ImageView
+
+    val URL = URL(url)
+    val bmp = BitmapFactory.decodeStream(URL.openConnection().getInputStream())
+    imageView.setImageBitmap(bmp)
+  }
+
+  private fun configureDeleteNotice(customView: View, position: Int) {
+    val imageButton = customView.findViewById<View>(R.id.closeNotice) as ImageView
+    imageButton.setOnClickListener {
+      sendEventToReactNative("DELETE_NOTICE", position.toString())
+    }
+  }
+
+  private fun configureNoticeModificationDate(customView: View, message: ReadableMap?, typeBold: Typeface) {
+    var modified: String? = message!!.getString("modified")
+    var textViewDate: TextView? = customView.findViewById(R.id.date)
+
+    textViewDate!!.typeface = typeBold
+
+    textViewDate.text = modified
+  }
+
+  private fun configureContributorName(customView: View, disMoiContributorNameMap: ReadableMap?, typeBold: Typeface) {
+
+    var disMoiContributorName: String? = disMoiContributorNameMap!!.getString("name")
+    var textViewContributorName: TextView? = customView.findViewById(R.id.name)
+
+    textViewContributorName!!.typeface = typeBold
+
+    textViewContributorName.text = disMoiContributorName
+  }
+
+  private fun configureContributorContent(customView: View, message: ReadableMap?) {
+    var disMoiMessage: String? = message!!.getString("message")
+    val type = Typeface.createFromAsset(reactContext.assets, "fonts/Helvetica.ttf")
+    var textView: TextView? = customView.findViewById(R.id.link)
+
+    textView!!.typeface = type
+
+    textView.text = disMoiMessage!!.toSpanned()
+
+    textView.handleUrlClicks { urlLinkToClick ->
+      sendEventToReactNative("URL_CLICK_LINK", Uri.parse(urlLinkToClick).toString())
+    }
+  }
+
   //set view attributes here
   var viewListener: ViewListener = object : ViewListener {
 
@@ -247,57 +307,23 @@ class FloatingModule(
 
       var disMoiContributorNameMap: ReadableMap? = message!!.getMap("contributor")
 
-      var url: String? = disMoiContributorNameMap!!.getMap("avatar")!!.getMap("normal")!!.getString("url")
-
-      var modified: String? = message.getString("modified")
-
-      var disMoiContributorName: String? = disMoiContributorNameMap.getString("name")
-
-      var disMoiMessage: String? = message.getString("message")
-
       val customView: View = LayoutInflater.from(reactContext).inflate(R.layout.message, null)
-
-      val type = Typeface.createFromAsset(reactContext.assets, "fonts/Helvetica.ttf")
-
       val typeBold = Typeface.createFromAsset(reactContext.assets, "fonts/Helvetica-Bold.ttf")
-      var textView: TextView? = customView.findViewById(R.id.link)
 
-      textView!!.typeface = type
+      configureContributorContent(customView, message)
 
-      textView.text = disMoiMessage!!.toSpanned()
+      configureContributorName(customView, disMoiContributorNameMap, typeBold)
 
-      var textViewContributorName: TextView? = customView.findViewById(R.id.name)
+      configureNoticeModificationDate(customView, message, typeBold)
 
-      textViewContributorName!!.typeface = typeBold
-
-      var textViewDate: TextView? = customView.findViewById(R.id.date)
-
-      textViewDate!!.typeface = typeBold
-
-      textViewContributorName.text = disMoiContributorName
-
-      textViewDate.text = modified
-
-      textView.handleUrlClicks { urlLinkToClick ->
-        sendEventToReactNative("URL_CLICK_LINK", Uri.parse(urlLinkToClick).toString())
-      }
-
-      val imageButton = customView!!.findViewById<View>(R.id.closeNotice) as ImageView
-      imageButton.setOnClickListener {
-        sendEventToReactNative("DELETE_NOTICE", position.toString())
-      }
+      configureDeleteNotice(customView, position)
 
       val SDK_INT = Build.VERSION.SDK_INT
       if (SDK_INT > 8) {
         val policy = ThreadPolicy.Builder()
           .permitAll().build()
         StrictMode.setThreadPolicy(policy)
-
-        val imageView: ImageView = customView!!.findViewById(R.id.contributorProfile) as ImageView
-
-        val URL = URL(url)
-        val bmp = BitmapFactory.decodeStream(URL.openConnection().getInputStream())
-        imageView.setImageBitmap(bmp)
+        configureImageProfile(customView, disMoiContributorNameMap)
       }
 
       return customView

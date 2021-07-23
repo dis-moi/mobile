@@ -22,12 +22,6 @@ import com.dismoi.scout.accessibility.BackgroundModule.Companion.sendEventFromAc
 import com.facebook.react.HeadlessJsTaskService
 
 class BackgroundService : AccessibilityService() {
-  private var _url: String? = ""
-  private var _eventType: String? = ""
-  private var _className: String? = ""
-  private var _packageName: String? = ""
-  private var _eventText: String? = ""
-  private var _hide: String? = ""
 
   private val NOTIFICATION_TIMEOUT: Long = 300
 
@@ -88,36 +82,8 @@ class BackgroundService : AccessibilityService() {
     this.serviceInfo = info
   }
 
-  @RequiresApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
-  private fun captureUrl(info: AccessibilityNodeInfo, config: SupportedBrowserConfig): String? {
-    // Can get URL with FLAG_REPORT_VIEW_IDS
-    val nodes = info.findAccessibilityNodeInfosByViewId(config.addressBarId)
-    if (nodes == null || nodes.size <= 0) {
-      return null
-    }
-    val addressBarNodeInfo = nodes[0]
-    var url: String? = null
-    if (addressBarNodeInfo.text != null) {
-      url = addressBarNodeInfo.text.toString()
-    }
-    addressBarNodeInfo.recycle()
-    return url
-  }
-
   fun isLauncherPackage(packageName: CharSequence): Boolean {
     return "com.android.systemui" == packageName || "com.android.launcher3" == packageName
-  }
-
-  private fun outsideChrome(info: AccessibilityNodeInfo): Boolean {
-    return info.childCount > 0 &&
-      info.className.toString() == "android.widget.FrameLayout" &&
-      info.getChild(0).className.toString() == "android.view.View"
-  }
-
-  private fun chromeSearchBarEditingIsActivated(info: AccessibilityNodeInfo): Boolean {
-    return info.childCount > 0 &&
-      info.className.toString() == "android.widget.FrameLayout" &&
-      info.getChild(0).className.toString() == "android.widget.EditText"
   }
 
   private fun overlayIsActivated(applicationContext: Context): Boolean {
@@ -148,7 +114,10 @@ class BackgroundService : AccessibilityService() {
     if (overlayIsActivated(applicationContext) && isWindowChangeEvent(event)) {
       val packageName = event.packageName.toString()
 
-      if (outsideChrome(parentNodeInfo)) {
+      val chrome: Chrome = Chrome()
+      chrome._parentNodeInfo = parentNodeInfo
+
+      if (chrome.outsideChrome()) {
         _hide = "true"
         handler.post(runnableCode)
         return
@@ -166,35 +135,28 @@ class BackgroundService : AccessibilityService() {
       if (browserConfig == null) {
         return
       }
-      val eventTime = event.eventTime
-      val detectionId = "$packageName"
-      val lastRecordedTime =
-      if (previousUrlDetections.containsKey(detectionId)) {
-        previousUrlDetections[detectionId]!!
-      } else 0.toLong()
-      if (eventTime - lastRecordedTime > NOTIFICATION_TIMEOUT) {
-        previousUrlDetections[detectionId] = eventTime
 
-        val capturedUrl = captureUrl(parentNodeInfo, browserConfig)
+      chrome._browserConfig = browserConfig
 
-        if (chromeSearchBarEditingIsActivated(parentNodeInfo)) {
-          _hide = "true"
-          handler.post(runnableCode)
-          return
-        }
+      val capturedUrl = chrome.captureUrl()
 
-        if (capturedUrl == null) {
-          return
-        }
-
-        _url = capturedUrl
-        _hide = "false"
+      if (chromeSearchBarEditingIsActivated()) {
+        _hide = "true"
         handler.post(runnableCode)
-
-        parentNodeInfo.recycle()
-
         return
       }
+
+      if (capturedUrl == null) {
+        return
+      }
+
+      _url = capturedUrl
+      _hide = "false"
+      handler.post(runnableCode)
+
+      parentNodeInfo.recycle()
+
+      return
     }
   }
 
@@ -214,7 +176,7 @@ class BackgroundService : AccessibilityService() {
   }
 
   override fun onDestroy() {
-    super.onDestroy()
+    super<AccessibilityService>.onDestroy()
 
     sendEventFromAccessibilityServicePermission("false")
     handler.removeCallbacks(runnableCode)

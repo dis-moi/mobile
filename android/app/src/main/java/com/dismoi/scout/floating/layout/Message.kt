@@ -24,7 +24,7 @@ import androidx.appcompat.widget.AppCompatImageView
 class Message(context: Context, attrs: AttributeSet?) : Layout(context, attrs) {
 
   override fun onAttachedToWindow() {
-    super.onAttachedToWindow()
+    super<Layout>.onAttachedToWindow()
     playAnimation()
   }
 

@@ -14,19 +14,19 @@ class Trash : Layout {
   private var attachedToWindow = false
   private var isVibrateInThisSession = false
 
-  constructor(context: Context?) : super(context)
-  constructor(context: Context?, attrs: AttributeSet?) : super(context, attrs)
-  constructor(context: Context?, attrs: AttributeSet?, defStyleAttr: Int) : super(
+  constructor(context: Context?) : super<Layout>(context)
+  constructor(context: Context?, attrs: AttributeSet?) : super<Layout>(context, attrs)
+  constructor(context: Context?, attrs: AttributeSet?, defStyleAttr: Int) : super<Layout>(
     context, attrs, defStyleAttr
   )
 
   override fun onAttachedToWindow() {
-    super.onAttachedToWindow()
+    super<Layout>.onAttachedToWindow()
     attachedToWindow = true
   }
 
   override fun onDetachedFromWindow() {
-    super.onDetachedFromWindow()
+    super<Layout>.onDetachedFromWindow()
     attachedToWindow = false
   }
 
@@ -40,7 +40,7 @@ class Trash : Layout {
         }
       }
     }
-    super.setVisibility(visibility)
+    super<Layout>.setVisibility(visibility)
   }
 
   fun applyMagnetism() {

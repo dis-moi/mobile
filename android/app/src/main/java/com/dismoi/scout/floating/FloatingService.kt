@@ -28,7 +28,7 @@ class FloatingService : Service() {
       recycleBubble(bubble)
     }
     bubbles.clear()
-    return super.onUnbind(intent)
+    return super<Service>.onUnbind(intent)
   }
 
   private fun recycleBubble(bubble: Bubble) {
