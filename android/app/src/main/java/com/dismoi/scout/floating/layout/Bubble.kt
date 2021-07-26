@@ -49,7 +49,7 @@ class Bubble(context: Context, attrs: AttributeSet?) : Layout(context, attrs) {
   }
 
   override fun onAttachedToWindow() {
-    super<Layout>.onAttachedToWindow()
+    super.onAttachedToWindow()
     playAnimation()
   }
 
@@ -89,7 +89,7 @@ class Bubble(context: Context, attrs: AttributeSet?) : Layout(context, attrs) {
         }
       }
     }
-    return super<Layout>.onTouchEvent(event)
+    return super.onTouchEvent(event)
   }
 
   private fun playAnimation() {

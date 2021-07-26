@@ -1,25 +1,28 @@
 package com.dismoi.scout.accessibility
 
-class Chrome {
-  var _url: String? = ""
-  var _eventType: String? = ""
-  var _className: String? = ""
-  var _packageName: String? = ""
-  var _eventText: String? = ""
-  var _hide: String? = ""
-  val _eventTime: String? = ""
-  val _parentNodeInfo: AccessibilityNodeInfo = null
-  var _browserConfig: SupportedBrowserConfig = null
+import android.os.Build
+import android.util.Log
+import android.view.accessibility.AccessibilityNodeInfo
+import androidx.annotation.RequiresApi
 
-  fun isLauncherPackage(): Boolean {
-    return "com.android.systemui" == _packageName || "com.android.launcher3" == _packageName
-  }
+class Chrome(packageName: String): Browser(packageName) {
+  var url: String? = ""
+  var eventType: String? = ""
+  var className: String? = ""
+  var eventText: String? = ""
+  var hide: String? = ""
+  var eventTime: String? = ""
+  lateinit var parentNodeInfo: AccessibilityNodeInfo
 
   @RequiresApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
   fun captureUrl(): String? {
+
+    if (getBrowserConfig() == null) {
+      return ""
+    }
     // Can get URL with FLAG_REPORT_VIEW_IDS
-    val nodes = _parentNodeInfo.findAccessibilityNodeInfosByViewId(
-      _browserConfig.addressBarId
+    val nodes = parentNodeInfo.findAccessibilityNodeInfosByViewId(
+      getBrowserConfig()!!.addressBarId
     )
     if (nodes == null || nodes.size <= 0) {
       return null
@@ -34,18 +37,14 @@ class Chrome {
   }
 
   fun outsideChrome(): Boolean {
-    if (isLauncherPackage(packageName) && parentNodeInfo.className.toString() != "android.widget.FrameLayout") {
-      return true
-    }
-
-    return _parentNodeInfo.childCount > 0 &&
-      _parentNodeInfo.className.toString() == "android.widget.FrameLayout" &&
-      _parentNodeInfo.getChild(0).className.toString() == "android.view.View"
+    return parentNodeInfo.childCount > 0 &&
+      parentNodeInfo.className.toString() == "android.widget.FrameLayout" &&
+      parentNodeInfo.getChild(0).className.toString() == "android.view.View"
   }
 
   fun chromeSearchBarEditingIsActivated(): Boolean {
-    return _parentNodeInfo.childCount > 0 &&
-      _parentNodeInfo.className.toString() == "android.widget.FrameLayout" &&
-      _parentNodeInfo.getChild(0).className.toString() == "android.widget.EditText"
+    return parentNodeInfo.childCount > 0 &&
+      parentNodeInfo.className.toString() == "android.widget.FrameLayout" &&
+      parentNodeInfo.getChild(0).className.toString() == "android.widget.EditText"
   }
 }

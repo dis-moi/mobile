@@ -14,9 +14,9 @@ class Trash : Layout {
   private var attachedToWindow = false
   private var isVibrateInThisSession = false
 
-  constructor(context: Context?) : super<Layout>(context)
-  constructor(context: Context?, attrs: AttributeSet?) : super<Layout>(context, attrs)
-  constructor(context: Context?, attrs: AttributeSet?, defStyleAttr: Int) : super<Layout>(
+  constructor(context: Context?) : super(context)
+  constructor(context: Context?, attrs: AttributeSet?) : super(context, attrs)
+  constructor(context: Context?, attrs: AttributeSet?, defStyleAttr: Int) : super(
     context, attrs, defStyleAttr
   )
 

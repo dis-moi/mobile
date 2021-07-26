@@ -88,17 +88,28 @@ function callActionListeners() {
   });
 }
 
+async function initializeFloatingLayout() {
+  return FloatingModule.initializeBubble().then(async () => {
+    return await FloatingModule.initializeMessage();
+  });
+}
+
 let matchingContextFetchApi =
   'https://notices.bulles.fr/api/v3/matching-contexts?';
 
+let matchingContextIsCalling = false;
+
 async function callMatchingContext(savedUrlMatchingContext) {
   console.log('_________________CALL MATHING CONTEXT____________________');
+
+  matchingContextIsCalling = true;
 
   return await fetch(matchingContextFetchApi + savedUrlMatchingContext)
     .then((response) => {
       console.log(
         '_________________END CALL MATHING CONTEXT____________________'
       );
+      matchingContextIsCalling = false;
       return response.json();
     })
     .catch((error) => {
@@ -141,6 +152,7 @@ let i = 0;
 const HeadlessTask = async (taskData) => {
   if (i === 0) {
     callActionListeners();
+    await initializeFloatingLayout();
     i++;
   }
 
@@ -151,71 +163,75 @@ const HeadlessTask = async (taskData) => {
     return;
   }
   SharedPreferences.getItem('url', async function (savedUrlMatchingContext) {
-    const res = await Promise.all([
-      await callMatchingContext(savedUrlMatchingContext),
-      await getHTMLOfCurrentChromeURL(taskData.url),
-    ]);
-    const matchingContexts = res[0];
-    const HTML = res[1];
-    const eventMessageFromChromeURL = taskData.url;
-    if (eventMessageFromChromeURL) {
-      let noticeIds = await getNoticeIds(
-        eventMessageFromChromeURL,
-        matchingContexts,
-        HTML
-      );
-      const uniqueIds = [...new Set(noticeIds)];
+    if (matchingContextIsCalling === false) {
+      const res = await Promise.all([
+        await callMatchingContext(savedUrlMatchingContext),
+        await getHTMLOfCurrentChromeURL(taskData.url),
+      ]);
+      const matchingContexts = res[0];
+      const HTML = res[1];
+      const eventMessageFromChromeURL = taskData.url;
+      if (eventMessageFromChromeURL) {
+        let noticeIds = await getNoticeIds(
+          eventMessageFromChromeURL,
+          matchingContexts,
+          HTML
+        );
+        const uniqueIds = [...new Set(noticeIds)];
 
-      let notices = await Promise.all(
-        uniqueIds.map((noticeId) =>
-          fetch(
-            `https://notices.bulles.fr/api/v3/notices/${noticeId}`
-          ).then((response) => response.json())
-        )
-      );
-      if (notices.length > 0) {
-        const noticesToShow = notices.map((result) => {
-          const formattedDate = formatDate(result);
+        let notices = await Promise.all(
+          uniqueIds.map((noticeId) =>
+            fetch(
+              `https://notices.bulles.fr/api/v3/notices/${noticeId}`
+            ).then((response) => response.json())
+          )
+        );
+        if (notices.length > 0) {
+          const noticesToShow = notices.map((result) => {
+            const formattedDate = formatDate(result);
 
-          result.modified = formattedDate;
-          return result;
-        });
+            result.modified = formattedDate;
+            return result;
+          });
 
-        SharedPreferences.getAll(function (values) {
-          const contributors = [
-            ...new Set(
-              values
-                .map((result) => {
-                  if (result[0] !== 'url') {
-                    return JSON.parse(result[1]);
-                  }
-                })
-                .filter(Boolean)
-            ),
-          ];
+          SharedPreferences.getAll(function (values) {
+            const contributors = [
+              ...new Set(
+                values
+                  .map((result) => {
+                    if (result[0] !== 'url') {
+                      return JSON.parse(result[1]);
+                    }
+                  })
+                  .filter(Boolean)
+              ),
+            ];
 
-          const noticeIdNotDeleted = getNoticeIdsThatAreNotDeleted(
-            contributors,
-            noticesToShow
-          );
+            const noticeIdNotDeleted = getNoticeIdsThatAreNotDeleted(
+              contributors,
+              noticesToShow
+            );
 
-          if (noticeIdNotDeleted.length > 0) {
-            _notices = noticeIdNotDeleted.map((id) => {
-              return noticesToShow.find(
-                (noticeToShow) => noticeToShow.id === id
-              );
-            });
+            if (noticeIdNotDeleted.length > 0) {
+              _notices = noticeIdNotDeleted.map((id) => {
+                return noticesToShow.find(
+                  (noticeToShow) => noticeToShow.id === id
+                );
+              });
 
-            FloatingModule.showFloatingDisMoiBubble(
-              10,
-              1500,
-              notices.length,
-              eventMessageFromChromeURL
-            ).then(() => {
-              noticeIds = [];
-            });
-          }
-        });
+              console.log('POST');
+
+              FloatingModule.showFloatingDisMoiBubble(
+                10,
+                1500,
+                notices.length,
+                eventMessageFromChromeURL
+              ).then(() => {
+                noticeIds = [];
+              });
+            }
+          });
+        }
       }
     }
   });

@@ -14,34 +14,12 @@ import com.dismoi.scout.floating.layout.Message
 
 class FloatingService : Service() {
   private val binder = FloatingServiceBinder()
-  private var bubbles: MutableList<Bubble> = ArrayList()
   private var bubblesTrash: Trash? = null
   private var windowManager: WindowManager? = null
   private var layoutCoordinator: Coordinator? = null
 
   override fun onBind(intent: Intent): IBinder? {
     return binder
-  }
-
-  override fun onUnbind(intent: Intent): Boolean {
-    for (bubble in bubbles) {
-      recycleBubble(bubble)
-    }
-    bubbles.clear()
-    return super<Service>.onUnbind(intent)
-  }
-
-  private fun recycleBubble(bubble: Bubble) {
-    Handler(Looper.getMainLooper()).post {
-      getWindowManager()!!.removeView(bubble)
-      bubbles.clear()
-      bubblesTrash = null
-    }
-  }
-
-  private fun recycleMessage(message: Message?) {
-    getWindowManager()!!.removeView(message)
-    bubblesTrash = null
   }
 
   private fun getWindowManager(): WindowManager? {
@@ -54,15 +32,12 @@ class FloatingService : Service() {
   fun addDisMoiBubble(bubble: Bubble, x: Int, y: Int) {
     val layoutParams = buildLayoutParamsForBubble(x, y)
     bubble.create(getWindowManager(), layoutParams, layoutCoordinator)
-
-    bubbles.add(bubble)
     addViewToWindow(bubble)
   }
 
   fun addDisMoiMessage(message: Message?, y: Int) {
     val layoutParams = buildLayoutParamsForMessage(y)
     message!!.create(getWindowManager(), layoutParams, layoutCoordinator)
-
     getWindowManager()!!.addView(message, message.viewParams)
   }
 
@@ -86,9 +61,7 @@ class FloatingService : Service() {
   }
 
   private fun addViewToWindow(view: Layout) {
-    Handler(Looper.getMainLooper()).post {
-      getWindowManager()!!.addView(view, view.viewParams)
-    }
+    getWindowManager()!!.addView(view, view.viewParams)
   }
 
   private fun buildLayoutParamsForBubble(x: Int, y: Int): WindowManager.LayoutParams? {
@@ -142,12 +115,13 @@ class FloatingService : Service() {
     return params
   }
 
-  fun removeBubble(bubble: Bubble) {
-    recycleBubble(bubble)
+  fun removeBubble(bubble: Bubble?) {
+    getWindowManager()!!.removeView(bubble)
+    bubblesTrash = null
   }
 
   fun removeMessage(message: Message?) {
-    recycleMessage(message)
+    getWindowManager()!!.removeView(message)
   }
 
   inner class FloatingServiceBinder : Binder() {

@@ -44,8 +44,6 @@ class BackgroundService : AccessibilityService() {
     }
   }
 
-  private val previousUrlDetections: HashMap<String, Long> = HashMap()
-
   /* 
     This system calls this method when it successfully connects to your accessibility service
   */
@@ -92,6 +90,15 @@ class BackgroundService : AccessibilityService() {
     return AccessibilityEvent.eventTypeToString(event.eventType).contains("WINDOW")
   }
 
+  fun checkIfChrome(packageName: String): Boolean {
+    return packageName == "com.android.chrome"
+  }
+
+  fun isLauncherActivated(packageName: String, parentNodeInfo: AccessibilityNodeInfo): Boolean {
+    return "com.android.launcher3" == packageName &&
+      parentNodeInfo.className.toString() != "android.widget.FrameLayout"
+  }
+
   /*
     This method is called back by the system when it detects an 
     AccessibilityEvent that matches the event filtering parameters 
@@ -108,9 +115,15 @@ class BackgroundService : AccessibilityService() {
     if (overlayIsActivated(applicationContext) && isWindowChangeEvent(event)) {
       val packageName = event.packageName.toString()
 
-      val chrome: Chrome = Chrome()
-      chrome._parentNodeInfo = parentNodeInfo
-      chrome._packageName = packageName
+      val chrome: Chrome = Chrome(packageName)
+
+      chrome.parentNodeInfo = parentNodeInfo
+
+      if (isLauncherActivated(packageName, parentNodeInfo)) {
+        _hide = "true"
+        handler.post(runnableCode)
+        return
+      }
 
       if (chrome.outsideChrome()) {
         _hide = "true"
@@ -118,56 +131,33 @@ class BackgroundService : AccessibilityService() {
         return
       }
 
-      var browserConfig: SupportedBrowserConfig? = null
+      if (checkIfChrome(packageName)) {
+        val capturedUrl = chrome.captureUrl()
 
-      for (supportedConfig in getSupportedBrowsers()) {
-        if (supportedConfig.packageName == packageName) {
-          browserConfig = supportedConfig
+        if (chrome.chromeSearchBarEditingIsActivated()) {
+          _hide = "true"
+          handler.post(runnableCode)
+          return
         }
-      }
 
-      // this is not supported browser, so exit
-      if (browserConfig == null) {
+        if (capturedUrl == null) {
+          return
+        }
+
+          _url = capturedUrl
+          _hide = "false"
+          handler.post(runnableCode)
+
+
+        parentNodeInfo.recycle()
+
         return
       }
-
-      chrome._browserConfig = browserConfig
-
-      val capturedUrl = chrome.captureUrl()
-
-      if (chrome.chromeSearchBarEditingIsActivated()) {
-        _hide = "true"
-        handler.post(runnableCode)
-        return
-      }
-
-      if (capturedUrl == null) {
-        return
-      }
-
-      _url = capturedUrl
-      _hide = "false"
-      handler.post(runnableCode)
-
-      parentNodeInfo.recycle()
-
-      return
     }
   }
 
   override fun onInterrupt() {
     sendEventFromAccessibilityServicePermission("false")
-  }
-
-  private class SupportedBrowserConfig(var packageName: String, var addressBarId: String)
-
-  /** @return a list of supported browser configs
-   * This list could be instead obtained from remote server to support future browser updates without updating an app
-   */
-  private fun getSupportedBrowsers(): List<SupportedBrowserConfig> {
-    val browsers: MutableList<SupportedBrowserConfig> = ArrayList()
-    browsers.add(SupportedBrowserConfig("com.android.chrome", "com.android.chrome:id/url_bar"))
-    return browsers
   }
 
   override fun onDestroy() {

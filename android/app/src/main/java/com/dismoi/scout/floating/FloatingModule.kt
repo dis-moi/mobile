@@ -24,14 +24,12 @@ import android.widget.TextView
 import com.dismoi.scout.R
 import com.dismoi.scout.floating.layout.Bubble
 import com.dismoi.scout.floating.layout.Bubble.OnBubbleClickListener
-import com.dismoi.scout.floating.layout.Bubble.OnBubbleRemoveListener
 import com.dismoi.scout.floating.layout.Message
 import com.facebook.react.bridge.*
 import com.facebook.react.modules.core.DeviceEventManagerModule.RCTDeviceEventEmitter
 import com.synnapps.carouselview.CarouselView
 import com.synnapps.carouselview.ViewListener
 import java.net.URL
-
 
 class FloatingModule(
   private val reactContext: ReactApplicationContext
@@ -46,6 +44,9 @@ class FloatingModule(
   private var _size = 0
   private lateinit var _notices: ReadableArray
   private var _url = ""
+
+  var bubbleInitialized: Boolean = false
+  var messageInitialized: Boolean = false
 
   var verticalLayout: LinearLayout? = null
 
@@ -74,36 +75,59 @@ class FloatingModule(
     _url = url
     _size = numberOfNotice
 
-    bubblesManager = Manager.Builder(reactContext).setTrashLayout(
-      R.layout.bubble_trash
-    ).setInitializationCallback(object : OnCallback {
-      override fun onInitialized() {
-        removeDisMoiBubble()
-        addNewFloatingDisMoiBubble(x, y, numberOfNotice.toString())
-        promise.resolve("")
-      }
-    }).build()
-
-    bubblesManager!!.initialize()
+    addNewFloatingDisMoiBubble(x, y, numberOfNotice.toString())
+    promise.resolve("")
   }
 
   @ReactMethod
   fun showFloatingDisMoiMessage(notices: ReadableArray, y: Int, numberOfNotice: Int, promise: Promise) {
-    try {
-      _notices = notices
-      _size = numberOfNotice
+    _notices = notices
+    _size = numberOfNotice
 
-      messagesManager = Manager.Builder(reactContext)
+    removeDisMoiBubble()
+    removeDisMoiMessage()
+    addNewFloatingDisMoiMessage(y)
+    promise.resolve("")
+
+  }
+
+  @ReactMethod
+  fun initializeBubble(promise: Promise) {
+    try {
+      if (bubbleInitialized == false) {
+        bubblesManager = Manager.Builder(reactContext)
         .setInitializationCallback(object : OnCallback {
           override fun onInitialized() {
-            removeDisMoiBubble()
-            removeDisMoiMessage()
-            addNewFloatingDisMoiMessage(y)
+            Log.d("Notification", "bubble is initialized")
+            bubbleInitialized = true
             promise.resolve("")
           }
         }).build()
 
-      messagesManager!!.initialize()
+        bubblesManager!!.initialize()
+      }
+
+      
+    } catch (e: Exception) {
+      promise.reject("0", "")
+    }
+  }
+
+  @ReactMethod
+  fun initializeMessage(promise: Promise) {
+    try {
+      if (messageInitialized == false) {
+        messagesManager = Manager.Builder(reactContext)
+        .setInitializationCallback(object : OnCallback {
+          override fun onInitialized() {
+            messageInitialized = true
+            promise.resolve("")
+          }
+        }).build()
+
+        messagesManager!!.initialize()
+
+      }
     } catch (e: Exception) {
       promise.reject("0", "")
     }
@@ -220,7 +244,6 @@ class FloatingModule(
   private fun removeDisMoiBubble() {
     if (bubbleDisMoiView != null) {
       bubblesManager!!.removeBubble(bubbleDisMoiView)
-      bubbleDisMoiView = null
     }
   }
 
