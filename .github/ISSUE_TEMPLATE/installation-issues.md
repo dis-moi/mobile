@@ -1,5 +1,5 @@
 ---
-name: 🐛 Dismoi Android Chrome App Installation issues
+name: 🐛 Installation problems
 about: Report any installation issue here
 ---
 
