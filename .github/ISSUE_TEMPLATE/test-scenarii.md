@@ -1,3 +1,8 @@
+---
+name: 🐛 Dismoi Android Chrome App Test Scenarii
+about: Follow the Test Scenarii listed here
+---
+
 ### 1. Configuration
 
 * Device brand `(Samsung, etc...)`:
