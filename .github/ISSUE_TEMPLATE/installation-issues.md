@@ -1,3 +1,8 @@
+---
+name: 🐛 Dismoi Android Chrome App Installation issues
+about: Report any installation issue here
+---
+
 ### 1. Configuration
 
 * Device brand `(Samsung, etc...)`:
