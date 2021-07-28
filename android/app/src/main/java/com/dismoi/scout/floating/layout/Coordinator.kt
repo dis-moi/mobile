@@ -9,9 +9,9 @@ class Coordinator private constructor() {
   private var _windowManager: WindowManager? = null
   private var _bubblesService: FloatingService? = null
 
-  fun notifyBubblePositionChanged(bubble: Bubble) {
+  fun notifyBubblePositionChanged(bubble: Bubble, x: Int, y: Int) {
     if (_trashView != null) {
-      _trashView!!.visibility = View.VISIBLE
+      _trashView!!.setVisibility(View.VISIBLE)
       if (checkIfBubbleIsOverTrash(bubble)) {
         _trashView!!.applyMagnetism()
         _trashView!!.vibrate()
@@ -23,20 +23,20 @@ class Coordinator private constructor() {
   }
 
   private fun applyTrashMagnetismToBubble(bubble: Bubble) {
-    val trashContentView = trashContent
+    val trashContentView: View = getTrashContent()
     val trashCenterX = trashContentView.left + trashContentView.measuredWidth / 2
     val trashCenterY = trashContentView.top + trashContentView.measuredHeight / 2
     val x = trashCenterX - bubble.measuredWidth / 2
     val y = trashCenterY - bubble.measuredHeight / 2
-    bubble.viewParams!!.x = x
-    bubble.viewParams!!.y = y
-    _windowManager!!.updateViewLayout(bubble, bubble.viewParams)
+    bubble.getViewParams()!!.x = x
+    bubble.getViewParams()!!.y = y
+    _windowManager!!.updateViewLayout(bubble, bubble.getViewParams())
   }
 
   private fun checkIfBubbleIsOverTrash(bubble: Bubble): Boolean {
     var result = false
     if (_trashView!!.visibility == View.VISIBLE) {
-      val trashContentView = trashContent
+      val trashContentView = getTrashContent()
       val trashWidth = trashContentView.measuredWidth
       val trashHeight = trashContentView.measuredHeight
       val trashLeft = trashContentView.left - trashWidth / 2
@@ -45,9 +45,9 @@ class Coordinator private constructor() {
       val trashBottom = trashContentView.top + trashHeight + trashHeight / 2
       val bubbleWidth = bubble.measuredWidth
       val bubbleHeight = bubble.measuredHeight
-      val bubbleLeft = bubble.viewParams!!.x
+      val bubbleLeft = bubble._viewParams!!.x
       val bubbleRight = bubbleLeft + bubbleWidth
-      val bubbleTop = bubble.viewParams!!.y
+      val bubbleTop = bubble._viewParams!!.y
       val bubbleBottom = bubbleTop + bubbleHeight
       if (bubbleLeft >= trashLeft && bubbleRight <= trashRight) {
         if (bubbleTop >= trashTop && bubbleBottom <= trashBottom) {
@@ -89,8 +89,9 @@ class Coordinator private constructor() {
     }
   }
 
-  private val trashContent: View
-    get() = _trashView!!.getChildAt(0)
+  private fun getTrashContent(): View {
+    return _trashView!!.getChildAt(0)
+  }
 
   companion object {
     private var INSTANCE: Coordinator? = null

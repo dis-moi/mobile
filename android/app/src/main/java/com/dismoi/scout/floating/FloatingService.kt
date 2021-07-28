@@ -4,13 +4,13 @@ import android.app.Service
 import android.content.Intent
 import android.graphics.PixelFormat
 import android.os.*
-import android.util.Log
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.WindowManager
 import com.dismoi.scout.floating.layout.*
 import com.dismoi.scout.floating.layout.Message
+
 
 class FloatingService : Service() {
   private val binder = FloatingServiceBinder()
@@ -22,6 +22,10 @@ class FloatingService : Service() {
     return binder
   }
 
+  override fun onUnbind(intent: Intent): Boolean {
+    return super.onUnbind(intent)
+  }
+
   private fun getWindowManager(): WindowManager? {
     if (windowManager == null) {
       windowManager = getSystemService(WINDOW_SERVICE) as WindowManager
@@ -31,21 +35,26 @@ class FloatingService : Service() {
 
   fun addDisMoiBubble(bubble: Bubble, x: Int, y: Int) {
     val layoutParams = buildLayoutParamsForBubble(x, y)
-    bubble.create(getWindowManager(), layoutParams, layoutCoordinator)
+
+    bubble.setWindowManager(getWindowManager())
+    bubble.setViewParams(layoutParams)
+    bubble.setLayoutCoordinator(layoutCoordinator)
     addViewToWindow(bubble)
   }
 
   fun addDisMoiMessage(message: Message?, y: Int) {
     val layoutParams = buildLayoutParamsForMessage(y)
-    message!!.create(getWindowManager(), layoutParams, layoutCoordinator)
-    getWindowManager()!!.addView(message, message.viewParams)
+    message!!.setWindowManager(getWindowManager())
+    message!!.setViewParams(layoutParams)
+    message.setLayoutCoordinator(layoutCoordinator)
+    addViewToWindow(message)
   }
 
   fun addTrash(trashLayoutResourceId: Int) {
     if (trashLayoutResourceId != 0) {
       bubblesTrash = Trash(this)
-      bubblesTrash!!.windowManager = windowManager
-      bubblesTrash!!.viewParams = buildLayoutParamsForTrash()
+      bubblesTrash!!.setWindowManager(windowManager)
+      bubblesTrash!!.setViewParams(buildLayoutParamsForTrash())
       bubblesTrash!!.visibility = View.GONE
       LayoutInflater.from(this).inflate(trashLayoutResourceId, bubblesTrash, true)
       addViewToWindow(bubblesTrash!!)
@@ -61,7 +70,12 @@ class FloatingService : Service() {
   }
 
   private fun addViewToWindow(view: Layout) {
-    getWindowManager()!!.addView(view, view.viewParams)
+    Handler(Looper.getMainLooper()).post {
+      getWindowManager()!!.addView(
+        view,
+        view.getViewParams()
+      )
+    }
   }
 
   private fun buildLayoutParamsForBubble(x: Int, y: Int): WindowManager.LayoutParams? {
@@ -117,7 +131,8 @@ class FloatingService : Service() {
 
   fun removeBubble(bubble: Bubble?) {
     getWindowManager()!!.removeView(bubble)
-    bubblesTrash = null
+    bubble!!.notifyBubbleRemoved()
+
   }
 
   fun removeMessage(message: Message?) {

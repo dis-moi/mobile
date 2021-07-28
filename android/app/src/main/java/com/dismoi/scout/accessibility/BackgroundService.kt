@@ -22,10 +22,11 @@ import com.dismoi.scout.accessibility.BackgroundModule.Companion.sendEventFromAc
 import com.facebook.react.HeadlessJsTaskService
 
 class BackgroundService : AccessibilityService() {
-  private var _url: String? = ""
   private var _hide: String? = ""
+  private var _eventTime: String? = ""
+  val chrome: Chrome = Chrome()
 
-  private val NOTIFICATION_TIMEOUT: Long = 300
+  private val NOTIFICATION_TIMEOUT: Long = 500
 
   private val handler = Handler(Looper.getMainLooper())
   private val runnableCode: Runnable = object : Runnable {
@@ -34,14 +35,30 @@ class BackgroundService : AccessibilityService() {
       val myIntent = Intent(context, BackgroundEventService::class.java)
       val bundle = Bundle()
 
-      bundle.putString("url", _url)
+      bundle.putString("url", chrome._url)
       bundle.putString("hide", _hide)
+      bundle.putString("eventTime", _eventTime)
+
 
       myIntent.putExtras(bundle)
 
       context.startService(myIntent)
       HeadlessJsTaskService.acquireWakeLockNow(context)
     }
+  }
+
+  private fun getEventType(event: AccessibilityEvent): String? {
+    when (event.eventType) {
+      AccessibilityEvent.TYPE_VIEW_CLICKED -> return "TYPE_VIEW_CLICKED"
+      AccessibilityEvent.TYPE_VIEW_FOCUSED -> return "TYPE_VIEW_FOCUSED"
+      AccessibilityEvent.TYPE_VIEW_SELECTED -> return "TYPE_VIEW_SELECTED"
+      AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED -> return "TYPE_WINDOW_STATE_CHANGED"
+      AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED -> return "TYPE_WINDOW_CONTENT_CHANGED"
+      AccessibilityEvent.TYPE_VIEW_TEXT_CHANGED -> return "TYPE_VIEW_TEXT_CHANGED"
+      AccessibilityEvent.TYPE_VIEW_TEXT_SELECTION_CHANGED -> return "TYPE_VIEW_TEXT_SELECTION_CHANGED"
+      AccessibilityEvent.TYPE_VIEW_ACCESSIBILITY_FOCUSED -> return "TYPE_VIEW_ACCESSIBILITY_FOCUSED"
+    }
+    return event.eventType.toString()
   }
 
   /* 
@@ -59,7 +76,7 @@ class BackgroundService : AccessibilityService() {
       Represents the event of changing the content of a window and more specifically 
       the sub-tree rooted at the event's source
     */
-    info.eventTypes = AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED
+    info.eventTypes = AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED or AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED or AccessibilityEvent.TYPE_VIEW_ACCESSIBILITY_FOCUSED
 
     /* 
       info.packageNames is not set because we want to receive event from
@@ -90,13 +107,18 @@ class BackgroundService : AccessibilityService() {
     return AccessibilityEvent.eventTypeToString(event.eventType).contains("WINDOW")
   }
 
+  private fun chromeSearchBarEditingIsActivated(info: AccessibilityNodeInfo): Boolean {
+    return info.childCount > 0 &&
+      info.className.toString() == "android.widget.FrameLayout" &&
+      info.getChild(0).className.toString() == "android.widget.EditText"
+  }
+
   fun checkIfChrome(packageName: String): Boolean {
     return packageName == "com.android.chrome"
   }
 
   fun isLauncherActivated(packageName: String, parentNodeInfo: AccessibilityNodeInfo): Boolean {
-    return "com.android.launcher3" == packageName &&
-      parentNodeInfo.className.toString() != "android.widget.FrameLayout"
+    return "com.android.launcher3" == packageName
   }
 
   /*
@@ -106,55 +128,86 @@ class BackgroundService : AccessibilityService() {
    */
   @RequiresApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
   override fun onAccessibilityEvent(event: AccessibilityEvent) {
+    val packageName = event.packageName.toString()
+    val parentNodeInfo: AccessibilityNodeInfo = event.source ?: return
+
     if (getRootInActiveWindow() == null) {
       return
     }
 
-    val parentNodeInfo: AccessibilityNodeInfo = event.source ?: return
 
-    if (overlayIsActivated(applicationContext) && isWindowChangeEvent(event)) {
-      val packageName = event.packageName.toString()
 
-      val chrome: Chrome = Chrome(packageName)
+    if (getEventType(event) == "TYPE_WINDOW_STATE_CHANGED") {
 
+      if (packageName.contains("com.google.android.inputmethod")) {
+        Log.d("Notification", "INSIDE INPUT METHOD")
+        _hide = "true"
+        handler.post(runnableCode)
+        return
+      }
+    }
+
+    //if (getEventType(event) == "TYPE_VIEW_CLICKED") {
+      //Log.d("Notification", "INSIDE TYPE VIEW CLICKED")
+      //_hide = "true"
+      //chrome._url = ""
+      //handler.post(runnableCode)
+      //return
+    //}
+
+    if (isLauncherActivated(packageName, parentNodeInfo)) {
+      Log.d("Notification", "INSIDE HIDE TRUE")
+      _hide = "true"
+      handler.post(runnableCode)
+      return
+    }
+
+    if (checkIfChrome(packageName)) {
       chrome.parentNodeInfo = parentNodeInfo
+      chrome._packageName = packageName
 
-      if (isLauncherActivated(packageName, parentNodeInfo)) {
-        _hide = "true"
-        handler.post(runnableCode)
-        return
-      }
-
-      if (chrome.outsideChrome()) {
-        _hide = "true"
-        handler.post(runnableCode)
-        return
-      }
-
-      if (checkIfChrome(packageName)) {
-        val capturedUrl = chrome.captureUrl()
-
+      if (getEventType(event) == "TYPE_WINDOW_STATE_CHANGED" || getEventType(event) == "TYPE_WINDOW_CONTENT_CHANGED") {
+        chrome.captureUrl()
         if (chrome.chromeSearchBarEditingIsActivated()) {
+
           _hide = "true"
           handler.post(runnableCode)
           return
         }
-
-        if (capturedUrl == null) {
-          return
-        }
-
-          _url = capturedUrl
-          _hide = "false"
-          handler.post(runnableCode)
-
-
-        parentNodeInfo.recycle()
-
-        return
       }
+
+
+
+      if (getEventType(event) != "TYPE_WINDOW_STATE_CHANGED" && getEventType(event) != "TYPE_WINDOW_CONTENT_CHANGED") {
+        Log.d("Notification", "POST hide false")
+        Log.d("Notification", getEventType(event).toString())
+        _eventTime = event.eventTime.toString()
+        _hide = "false"
+        handler.post(runnableCode)
+      }
+
+      parentNodeInfo.recycle()
     }
+
+    return
   }
+
+    // if (overlayIsActivated(applicationContext)) {
+    //
+
+
+
+
+
+    //   if (chrome.outsideChrome()) {
+    //     _hide = "true"
+    //     _url = ""
+    //     handler.post(runnableCode)
+    //     return
+    //   }
+
+
+  
 
   override fun onInterrupt() {
     sendEventFromAccessibilityServicePermission("false")

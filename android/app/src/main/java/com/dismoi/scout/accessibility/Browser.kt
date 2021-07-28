@@ -1,9 +1,7 @@
 package com.dismoi.scout.accessibility
 
-import android.util.Log
-
-open class Browser(packageName: String = "") {
-  var _packageName = packageName
+open class Browser() {
+  var _packageName: String = ""
 
   class SupportedBrowserConfig(var packageName: String, var addressBarId: String)
 

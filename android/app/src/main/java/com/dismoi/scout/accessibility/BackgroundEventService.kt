@@ -16,7 +16,7 @@ class BackgroundEventService : HeadlessJsTaskService() {
         Arguments.fromBundle(extras)
       } else Arguments.createMap(),
       5000, // timeout of the task
-      false
+      true
     )
   }
 }

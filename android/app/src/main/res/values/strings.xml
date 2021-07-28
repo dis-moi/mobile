@@ -2,9 +2,9 @@
 <resources>
   <string name="app_name">DisMoi</string>
   <string name="accessibility_service_label">DisMoi</string>
-  <string name="accessibility_service_description">Dismoi utilise le service d&#x2019;accessibilit&#x00E9; d&#x2019;Android dans le but d&#x2019;afficher les contributions sur les pages web visit&#x00E9;es avec votre navigateur mobile.\n\nDismoi n&#x2019;observe pas le texte que vous saisissez et n&#x2019;exploite ni ne revend aucune donn&#x00E9;e personnelle.</string>
+  <string name="accessibility_service_description">Dismoi utilise le service d’accessibilité d’Android dans le but d’afficher les contributions sur les pages web visitées avec votre navigateur mobile.\n\nDismoi n’observe pas le texte que vous saisissez et n’exploite ni ne revend aucune donnée personnelle.</string>
   <string name="dis_moi_logo">DisMoi logo</string>
-  <string name="trash">Trash the icon</string>
   <string name="close_dis_moi_content_message_button">Close button</string>
   <string name="dismoi_logo_description">dismoi logo</string>
+  <string name="trash">Trash the icon</string>
 </resources>

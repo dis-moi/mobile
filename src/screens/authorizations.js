@@ -1,5 +1,5 @@
 import React from 'react';
-import { Text, View } from 'react-native';
+import { View } from 'react-native';
 import { Switch, ListItem, Body, Right } from 'native-base';
 import { Background } from '../nativeModules/get';
 import Screen from '../components/screen';

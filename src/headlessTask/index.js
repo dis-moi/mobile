@@ -88,12 +88,6 @@ function callActionListeners() {
   });
 }
 
-async function initializeFloatingLayout() {
-  return FloatingModule.initializeBubble().then(async () => {
-    return await FloatingModule.initializeMessage();
-  });
-}
-
 let matchingContextFetchApi =
   'https://notices.bulles.fr/api/v3/matching-contexts?';
 
@@ -150,16 +144,21 @@ function getNoticeIdsThatAreNotDeleted(contributors, noticesToShow) {
 let i = 0;
 
 const HeadlessTask = async (taskData) => {
+  console.log('HEADLESS TASK');
+  console.log(taskData);
+
   if (i === 0) {
     callActionListeners();
-    await initializeFloatingLayout();
     i++;
   }
 
   if (taskData.hide === 'true') {
-    FloatingModule.hideFloatingDisMoiBubble().then(() =>
-      FloatingModule.hideFloatingDisMoiMessage()
-    );
+    console.log('HIDE NOW');
+    // FloatingModule.initializeBubblesManager().then(() => {
+    FloatingModule.hideFloatingDisMoiBubble().then(() => {
+      FloatingModule.hideFloatingDisMoiMessage();
+    });
+    // });
     return;
   }
   SharedPreferences.getItem('url', async function (savedUrlMatchingContext) {
@@ -206,28 +205,25 @@ const HeadlessTask = async (taskData) => {
                   .filter(Boolean)
               ),
             ];
-
             const noticeIdNotDeleted = getNoticeIdsThatAreNotDeleted(
               contributors,
               noticesToShow
             );
-
             if (noticeIdNotDeleted.length > 0) {
               _notices = noticeIdNotDeleted.map((id) => {
                 return noticesToShow.find(
                   (noticeToShow) => noticeToShow.id === id
                 );
               });
-
-              console.log('POST');
-
-              FloatingModule.showFloatingDisMoiBubble(
-                10,
-                1500,
-                notices.length,
-                eventMessageFromChromeURL
-              ).then(() => {
-                noticeIds = [];
+              FloatingModule.initializeBubblesManager().then(() => {
+                FloatingModule.showFloatingDisMoiBubble(
+                  10,
+                  1500,
+                  notices.length,
+                  eventMessageFromChromeURL
+                ).then(() => {
+                  noticeIds = [];
+                });
               });
             }
           });
@@ -235,6 +231,7 @@ const HeadlessTask = async (taskData) => {
       }
     }
   });
+  // }
 };
 
 export default HeadlessTask;
