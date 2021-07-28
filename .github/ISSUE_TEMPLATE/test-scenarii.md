@@ -81,7 +81,7 @@ swipe between contributions | contributions move from left to right and lock in 
 | go to recrute.leroymerlin.fr | Bubble should appear just one time | Y/N |
 | subscribe to captain fact, see example, wait about 1 minute | Bubble should not disappear | Y/N |
 | subscribe to captain fact, see example, click on bubble, wait about 1 minute | Contribution window should not disappear | Y/N |
-| subscribe to 20+ contributor, open backmarket.fr, click on bubble, wait about 1 minute, leave chrome, contributions show as overlay over anything. | Contribution screen should remain in place until closed, or until Chrome closed | Y/N |
+| subscribe to 20+ contributor, open backmarket.fr, click on bubble, wait about 1 minute, leave chrome | Contribution screen should remain in place until closed, or until Chrome closed | Y/N |
 | Go to a website with bubble, click on bubble, leave chrome | The overlay should disappear | Y/N |
 | Go to a website with bubble, leave chrome | The overlay should disappear | Y/N |
 | Go to a website with bubble, click to type a new url | The overlay should disappear | Y/N |
