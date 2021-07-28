@@ -1,11 +1,10 @@
 package com.dismoi.scout.accessibility
 
-import android.accessibilityservice.AccessibilityService
-
-/* 
+/*
   The configuration of an accessibility service is contained in the 
   AccessibilityServiceInfo class
 */
+import android.accessibilityservice.AccessibilityService
 import android.accessibilityservice.AccessibilityServiceInfo
 import android.content.Context
 import android.content.Intent
@@ -14,7 +13,6 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.provider.Settings.canDrawOverlays
-import android.util.Log
 import android.view.accessibility.AccessibilityEvent
 import android.view.accessibility.AccessibilityNodeInfo
 import androidx.annotation.RequiresApi
@@ -131,7 +129,7 @@ class BackgroundService : AccessibilityService() {
    */
   @RequiresApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
   override fun onAccessibilityEvent(event: AccessibilityEvent) {
-    if (getRootInActiveWindow() == null) {
+    if (rootInActiveWindow == null) {
       return
     }
 
@@ -152,18 +150,8 @@ class BackgroundService : AccessibilityService() {
         return
       }
 
-      var browserConfig: SupportedBrowserConfig? = null
+      val browserConfig = getSupportedBrowsers().find { it.packageName == packageName } ?: return
 
-      for (supportedConfig in getSupportedBrowsers()) {
-        if (supportedConfig.packageName == packageName) {
-          browserConfig = supportedConfig
-        }
-      }
-
-      // this is not supported browser, so exit
-      if (browserConfig == null) {
-        return
-      }
       val eventTime = event.eventTime
       val detectionId = "$packageName"
       val lastRecordedTime =
