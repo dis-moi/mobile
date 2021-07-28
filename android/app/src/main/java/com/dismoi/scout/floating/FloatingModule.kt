@@ -627,13 +627,13 @@ class FloatingModule(
 
       configureDeleteNotice(customView, position)
 
-      // val SDK_INT = Build.VERSION.SDK_INT
-      // if (SDK_INT > 8) {
-      //   val policy = ThreadPolicy.Builder()
-      //     .permitAll().build()
-      //   StrictMode.setThreadPolicy(policy)
-      //   configureImageProfile(customView, disMoiContributorNameMap)
-      // }
+      val SDK_INT = Build.VERSION.SDK_INT
+      if (SDK_INT > 8) {
+        val policy = ThreadPolicy.Builder()
+          .permitAll().build()
+        StrictMode.setThreadPolicy(policy)
+        configureImageProfile(customView, disMoiContributorNameMap)
+      }
 
       return customView
     }

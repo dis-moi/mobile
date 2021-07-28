@@ -10,21 +10,13 @@ import 'moment/min/locales';
 
 let _notices = [];
 
-async function getNoticeIds(eventMessageFromChromeURL, matchingContexts, HTML) {
+async function getNoticeIds(eventMessageFromChromeURL, matchingContexts) {
   const noticeIds = [];
   for (const matchingContext of matchingContexts) {
     const addWWWForBuildingURL = `www.${eventMessageFromChromeURL}`;
 
     if (addWWWForBuildingURL.match(new RegExp(matchingContext.urlRegex, 'g'))) {
       if (matchingContext.xpath) {
-        const result = await Background.testWithXpath(
-          HTML,
-          matchingContext.xpath
-        );
-
-        if (result === 'true') {
-          noticeIds.push(matchingContext.noticeId);
-        }
         continue;
       }
       noticeIds.push(matchingContext.noticeId);
@@ -91,34 +83,13 @@ function callActionListeners() {
 let matchingContextFetchApi =
   'https://notices.bulles.fr/api/v3/matching-contexts?';
 
-let matchingContextIsCalling = false;
-
 async function callMatchingContext(savedUrlMatchingContext) {
   console.log('_________________CALL MATHING CONTEXT____________________');
 
-  matchingContextIsCalling = true;
-
-  return await fetch(matchingContextFetchApi + savedUrlMatchingContext)
-    .then((response) => {
-      console.log(
-        '_________________END CALL MATHING CONTEXT____________________'
-      );
-      matchingContextIsCalling = false;
-      return response.json();
-    })
-    .catch((error) => {
-      console.log('ERROR MATCHING CONTEXT');
-      console.log(error);
-    });
-}
-
-async function getHTMLOfCurrentChromeURL(eventMessageFromChromeURL) {
-  return await fetch(`https://www.${eventMessageFromChromeURL}`).then(function (
-    response
-  ) {
-    // The API call was successful!
-    return response.text();
-  });
+  const response = await fetch(
+    matchingContextFetchApi + savedUrlMatchingContext
+  );
+  return response.json();
 }
 
 function getNoticeIdsThatAreNotDeleted(contributors, noticesToShow) {
@@ -142,42 +113,47 @@ function getNoticeIdsThatAreNotDeleted(contributors, noticesToShow) {
 }
 
 let i = 0;
+let eventTimes = [];
 
 const HeadlessTask = async (taskData) => {
   console.log('HEADLESS TASK');
-  console.log(taskData);
 
-  if (i === 0) {
-    callActionListeners();
-    i++;
+  if (taskData.eventTime) {
+    eventTimes.push(parseInt(taskData.eventTime));
   }
 
-  if (taskData.hide === 'true') {
-    console.log('HIDE NOW');
-    // FloatingModule.initializeBubblesManager().then(() => {
-    FloatingModule.hideFloatingDisMoiBubble().then(() => {
-      FloatingModule.hideFloatingDisMoiMessage();
-    });
-    // });
-    return;
-  }
-  SharedPreferences.getItem('url', async function (savedUrlMatchingContext) {
-    if (matchingContextIsCalling === false) {
-      const res = await Promise.all([
-        await callMatchingContext(savedUrlMatchingContext),
-        await getHTMLOfCurrentChromeURL(taskData.url),
-      ]);
-      const matchingContexts = res[0];
-      const HTML = res[1];
+  if (taskData.url) {
+    if (eventTimes.length === 2) {
+      const eventTime = eventTimes[1] - eventTimes[0];
+      if (eventTime < 10000) {
+        return;
+      }
+    }
+    if (i === 0) {
+      callActionListeners();
+      i++;
+    }
+
+    if (taskData.hide === 'true') {
+      FloatingModule.hideFloatingDisMoiBubble().then(() => {
+        FloatingModule.hideFloatingDisMoiMessage().then(() => {
+          //eventTimes = [];
+        });
+      });
+      return;
+    }
+    SharedPreferences.getItem('url', async function (savedUrlMatchingContext) {
+      const matchingContexts = await callMatchingContext(
+        savedUrlMatchingContext
+      );
+
       const eventMessageFromChromeURL = taskData.url;
       if (eventMessageFromChromeURL) {
         let noticeIds = await getNoticeIds(
           eventMessageFromChromeURL,
-          matchingContexts,
-          HTML
+          matchingContexts
         );
         const uniqueIds = [...new Set(noticeIds)];
-
         let notices = await Promise.all(
           uniqueIds.map((noticeId) =>
             fetch(
@@ -188,11 +164,9 @@ const HeadlessTask = async (taskData) => {
         if (notices.length > 0) {
           const noticesToShow = notices.map((result) => {
             const formattedDate = formatDate(result);
-
             result.modified = formattedDate;
             return result;
           });
-
           SharedPreferences.getAll(function (values) {
             const contributors = [
               ...new Set(
@@ -223,15 +197,15 @@ const HeadlessTask = async (taskData) => {
                   eventMessageFromChromeURL
                 ).then(() => {
                   noticeIds = [];
+                  eventTimes = [];
                 });
               });
             }
           });
         }
       }
-    }
-  });
-  // }
+    });
+  }
 };
 
 export default HeadlessTask;

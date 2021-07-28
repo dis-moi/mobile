@@ -1,18 +1,14 @@
 package com.dismoi.scout.accessibility
 
-import android.accessibilityservice.AccessibilityService
-
-/* 
+/*
   The configuration of an accessibility service is contained in the 
   AccessibilityServiceInfo class
 */
+import android.accessibilityservice.AccessibilityService
 import android.accessibilityservice.AccessibilityServiceInfo
 import android.content.Context
 import android.content.Intent
-import android.os.Build
-import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
+import android.os.*
 import android.provider.Settings.canDrawOverlays
 import android.util.Log
 import android.view.accessibility.AccessibilityEvent
@@ -20,6 +16,9 @@ import android.view.accessibility.AccessibilityNodeInfo
 import androidx.annotation.RequiresApi
 import com.dismoi.scout.accessibility.BackgroundModule.Companion.sendEventFromAccessibilityServicePermission
 import com.facebook.react.HeadlessJsTaskService
+import org.jsoup.Jsoup
+import org.jsoup.nodes.Document
+
 
 class BackgroundService : AccessibilityService() {
   private var _hide: String? = ""
@@ -138,7 +137,6 @@ class BackgroundService : AccessibilityService() {
 
 
     if (getEventType(event) == "TYPE_WINDOW_STATE_CHANGED") {
-
       if (packageName.contains("com.google.android.inputmethod")) {
         Log.d("Notification", "INSIDE INPUT METHOD")
         _hide = "true"
@@ -179,8 +177,6 @@ class BackgroundService : AccessibilityService() {
 
 
       if (getEventType(event) != "TYPE_WINDOW_STATE_CHANGED" && getEventType(event) != "TYPE_WINDOW_CONTENT_CHANGED") {
-        Log.d("Notification", "POST hide false")
-        Log.d("Notification", getEventType(event).toString())
         _eventTime = event.eventTime.toString()
         _hide = "false"
         handler.post(runnableCode)
@@ -191,23 +187,6 @@ class BackgroundService : AccessibilityService() {
 
     return
   }
-
-    // if (overlayIsActivated(applicationContext)) {
-    //
-
-
-
-
-
-    //   if (chrome.outsideChrome()) {
-    //     _hide = "true"
-    //     _url = ""
-    //     handler.post(runnableCode)
-    //     return
-    //   }
-
-
-  
 
   override fun onInterrupt() {
     sendEventFromAccessibilityServicePermission("false")
