@@ -1,6 +1,6 @@
 ---
-name: 🐛 Dismoi Android Chrome App Bug Report
-about: Use this template for reporting a bug
+name: 🐛 Bug reporting
+about: Use this template to report a bug
 ---
 
 ### 1. Configuration
