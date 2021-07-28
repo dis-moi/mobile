@@ -47,18 +47,28 @@ If you chose N (i.e. it did not work as intended) please report it as a bug here
 | click on subscribed button for same contributor | button label changes back to subscribe | Y/N |
 | while unsubscribed, click on the example link | opens subscribe popup | Y/N |
 | close subscribe popup | popup closes | Y/N |
+| scroll down to the bottom the contributor list | The scroll should show all the contributors | Y/N |
 | click on the example link > subscribe from subscribe popup | button label changes to see example | Y/N |
 | close popup after subscribe from popup | popup closes, subscribed to contributor | Y/N |
 | click on see example button from popup | opens Chrome | Y/N |
+| settings > apps > disable the overlay, go to a website with bubble | Bubble should not appear | Y/N |
+| settings > apps > disable the accessibility service, go to a website with bubble | App should not crash, and bubble should not appear | Y/N |
 | settings > apps > Dismoi > appear on top > Disable | Dismoi app opens on authorisations screens with Overlay toggle off and finish button greyed out | Y/N |
 | click on overlay toggle > accept overlay setting | opens contributor selection page when back on Dismoi | Y/N |
 | settings > accessibility > services > Dismoi > Disable | Dismoi app opens on authorisations screens with Accessibility toggle off and finish button greyed out | Y/N |
 | click on accessibility toggle > accept accessibility setting | opens contributor selection page when back on Dismoi | Y/N |
 | subscribe to alertoo and open example | Nespresso site opens in Chrome with Dismoi bubble on top | Y/N |
+| subscribe to alertoo, open example, wait for bubble, page tap on webpage | Bubble should not disappear | Y/N |
 | Drag Dismoi bubble to the right if the screen and release | Dismoi bubble snaps to the right of the screen | Y/N |
+| Drag Dismoi bubble to the right if the screen, release, and click on it | The contributors layout should appear | Y/N |
+| Drag Dismoi bubble to the right if the screen, release, click on it, press close | The contributors layout should disappear and should not have bubble | Y/N |
 | subscribe to captain fact and open example | Youtube site opens in Chrome with Dismoi bubble on top | Y/N |
+| Go to a page with bubble, receive a notification | Bubble should stay on page | Y/N |
+| Go to a page with bubble, receive a notification, click on notification | Bubble should disappear | Y/N |
+| Go to a page with bubble, wait for bubble, change url, go to an other page with bubble | Bubble should appear and should correspond to the updated website | Y/N |
 | click on Dismoi bubble | opens contribution screen over Chrome | Y/N |
 | click on link inside the captainfact contribution | opens captainfact site in new Chrome tab | Y/N |
+| click on link inside the captainfact contribution | bubble and layout should disappear | Y/N |
 | go back to previous tab, close contribution window (X) | contribution window closes, Dismoi Bubble notification on youtube is grey not red | Y/N |
 | subscribe to Le Kaba, iboycott, amazon antidote, Ar memestra e breizh then open https://amazon.fr | Dismoi bubble appears OVER WEBSITE with 3 contributions | Y/N | 
 click on Dismoi bubble | contribution screen appears over Chrome with 3 contributions | Y/N | 
@@ -69,7 +79,17 @@ swipe between contributions | contributions move from left to right and lock in 
 | open https://amazon.fr, drag Dismoi bubble into the close (X) area | Dismoi bubble disappears | Y/N |
 | Reopen amazon.fr | Dismoi bubble does not appear | Y/N |
 | go to recrute.leroymerlin.fr | Bubble should appear just one time | Y/N |
+| subscribe to captain fact, see example, wait about 1 minute | Bubble should not disappear | Y/N |
+| subscribe to captain fact, see example, click on bubble, wait about 1 minute | Contribution window should not disappear | Y/N |
+| subscribe to 20+ contributor, open backmarket.fr, click on bubble, wait about 1 minute, leave chrome, contributions show as overlay over anything. | Contribution screen should remain in place until closed, or until Chrome closed | Y/N |
+| Go to a website with bubble, click on bubble, leave chrome | The overlay should disappear | Y/N |
+| Go to a website with bubble, leave chrome | The overlay should disappear | Y/N |
+| Go to a website with bubble, click to type a new url | The overlay should disappear | Y/N |
+| Go to a website with bubble, hide chrome | The overlay should disappear | Y/N |
 | Go to the link see an example of Colibri pour la planête type backmarket.fr in url press enter | Dismoi bubble should appear | Y/N |
+| Empty cache data of phone, subscribe, see example | Dismoi bubble should appear | Y/N |
+| Use google to access a website with a bubble | Dismoi bubble should appear | Y/N |
+| Restart phone, open chrome (without opening dismoi), go to a website with a bubble | Dismoi bubble should appear | Y/N |
 | settings > apps > Dismoi > Force stop | app closes | Y/N |
 | settings > apps > Dismoi > uninstall | app uninstalls | Y/N |
-| settings > apps > Dismoi > uninstall | app uninstalls | Y/N |
+| Redo all these tests 1/2 days later in a random order | Everything should work fine | Y/N |
