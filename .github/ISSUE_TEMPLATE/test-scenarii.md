@@ -68,6 +68,8 @@ swipe between contributions | contributions move from left to right and lock in 
 | visit https://www.boulanger.com/c/toutes-les-yaourtieres-fromageres, click on bubble, click on bin | contribution window closes, no Dismoi bubble over page | Y/N |
 | open https://amazon.fr, drag Dismoi bubble into the close (X) area | Dismoi bubble disappears | Y/N |
 | Reopen amazon.fr | Dismoi bubble does not appear | Y/N |
+| go to recrute.leroymerlin.fr | Bubble should appear just one time | Y/N |
 | Go to the link see an example of Colibri pour la planête type backmarket.fr in url press enter | Dismoi bubble should appear | Y/N |
 | settings > apps > Dismoi > Force stop | app closes | Y/N |
+| settings > apps > Dismoi > uninstall | app uninstalls | Y/N |
 | settings > apps > Dismoi > uninstall | app uninstalls | Y/N |
