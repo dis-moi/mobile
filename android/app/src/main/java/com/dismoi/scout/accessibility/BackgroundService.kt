@@ -17,6 +17,8 @@ import android.view.accessibility.AccessibilityEvent
 import android.view.accessibility.AccessibilityNodeInfo
 import androidx.annotation.RequiresApi
 import com.dismoi.scout.accessibility.BackgroundModule.Companion.sendEventFromAccessibilityServicePermission
+import com.dismoi.scout.browser.SupportedBrowserConfig
+import com.dismoi.scout.browser.SupportedBrowsers
 import com.facebook.react.HeadlessJsTaskService
 
 class BackgroundService : AccessibilityService() {
@@ -150,7 +152,7 @@ class BackgroundService : AccessibilityService() {
         return
       }
 
-      val browserConfig = getSupportedBrowsers().find { it.packageName == packageName } ?: return
+      val browserConfig = SupportedBrowsers.find(packageName) ?: return
 
       val eventTime = event.eventTime
       val detectionId = "$packageName"
@@ -186,17 +188,6 @@ class BackgroundService : AccessibilityService() {
 
   override fun onInterrupt() {
     sendEventFromAccessibilityServicePermission("false")
-  }
-
-  private class SupportedBrowserConfig(var packageName: String, var addressBarId: String)
-
-  /** @return a list of supported browser configs
-   * This list could be instead obtained from remote server to support future browser updates without updating an app
-   */
-  private fun getSupportedBrowsers(): List<SupportedBrowserConfig> {
-    val browsers: MutableList<SupportedBrowserConfig> = ArrayList()
-    browsers.add(SupportedBrowserConfig("com.android.chrome", "com.android.chrome:id/url_bar"))
-    return browsers
   }
 
   override fun onDestroy() {
