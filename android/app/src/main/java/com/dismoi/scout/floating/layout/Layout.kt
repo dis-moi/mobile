@@ -10,19 +10,6 @@ open class Layout : FrameLayout {
   var _viewParams: WindowManager.LayoutParams? = null
   var _layoutCoordinator: Coordinator? = null
 
-  //fun create(
-    //getWindowManager: WindowManager?,
-    //layoutParams: WindowManager.LayoutParams?,
-    //layoutCoordinator: Coordinator?
-  //) {
-    //windowManager = getWindowManager
-    //viewParams = layoutParams
-    //this.layoutCoordinator = layoutCoordinator
-  //}
-
-  //open fun setWindowManager(getWindowManager: WindowManager?) {
-    //windowManager = getWindowManager
-  //}
   open fun setLayoutCoordinator(layoutCoordinator: Coordinator?) {
     _layoutCoordinator = layoutCoordinator
   }
