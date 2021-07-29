@@ -1,4 +1,4 @@
-package com.dismoi.scout.accessibility
+package com.dismoi.scout.accessibility.browser
 
 import android.os.Build
 import android.util.Log
@@ -18,10 +18,6 @@ class Chrome(): Browser() {
 
   @RequiresApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
   fun captureUrl() {
-    //if (getBrowserConfig() == null) {
-      //return ""
-    //}
-
     // Can get URL with FLAG_REPORT_VIEW_IDS
     val nodes = parentNodeInfo.findAccessibilityNodeInfosByViewId(
       getBrowserConfig()!!.addressBarId

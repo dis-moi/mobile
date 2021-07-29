@@ -14,12 +14,8 @@ import android.view.accessibility.AccessibilityEvent
 import android.view.accessibility.AccessibilityNodeInfo
 import androidx.annotation.RequiresApi
 import com.dismoi.scout.accessibility.BackgroundModule.Companion.sendEventFromAccessibilityServicePermission
-import com.dismoi.scout.browser.SupportedBrowserConfig
-import com.dismoi.scout.browser.SupportedBrowsers
+import com.dismoi.scout.accessibility.browser.Chrome
 import com.facebook.react.HeadlessJsTaskService
-import org.jsoup.Jsoup
-import org.jsoup.nodes.Document
-
 
 class BackgroundService : AccessibilityService() {
   private var _hide: String? = ""
@@ -38,7 +34,6 @@ class BackgroundService : AccessibilityService() {
       bundle.putString("url", chrome._url)
       bundle.putString("hide", _hide)
       bundle.putString("eventTime", _eventTime)
-
 
       myIntent.putExtras(bundle)
 
@@ -137,23 +132,13 @@ class BackgroundService : AccessibilityService() {
 
     if (getEventType(event) == "TYPE_WINDOW_STATE_CHANGED") {
       if (packageName.contains("com.google.android.inputmethod")) {
-        Log.d("Notification", "INSIDE INPUT METHOD")
         _hide = "true"
         handler.post(runnableCode)
         return
       }
     }
 
-    //if (getEventType(event) == "TYPE_VIEW_CLICKED") {
-      //Log.d("Notification", "INSIDE TYPE VIEW CLICKED")
-      //_hide = "true"
-      //chrome._url = ""
-      //handler.post(runnableCode)
-      //return
-    //}
-
     if (isLauncherActivated(packageName, parentNodeInfo)) {
-      Log.d("Notification", "INSIDE HIDE TRUE")
       _hide = "true"
       handler.post(runnableCode)
       return
@@ -171,8 +156,6 @@ class BackgroundService : AccessibilityService() {
           return
         }
       }
-
-
 
       if (getEventType(event) != "TYPE_WINDOW_STATE_CHANGED" && getEventType(event) != "TYPE_WINDOW_CONTENT_CHANGED") {
         _eventTime = event.eventTime.toString()
