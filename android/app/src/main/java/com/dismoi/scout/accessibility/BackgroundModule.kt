@@ -6,6 +6,7 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
+import android.util.Log
 import com.facebook.react.bridge.*
 import com.facebook.react.modules.core.DeviceEventManagerModule
 import org.htmlcleaner.CleanerProperties
@@ -91,25 +92,29 @@ class BackgroundModule(@Nonnull reactContext: ReactApplicationContext) :
     promise.resolve("")
   }
 
-  @ReactMethod
-  fun testWithXpath(htmlString: String, xPathParser: String, promise: Promise) {
-    // create an instance of HtmlCleaner
-    val tagNode = HtmlCleaner().clean(
-      htmlString
-    )
-    val doc = DomSerializer(
-      CleanerProperties()
-    ).createDOM(tagNode)
+  // @ReactMethod
+  // fun testWithXpath(htmlString: String, xPathParser: String, promise: Promise) {
+  //   Log.d("Notification", "begin test xpath")
+  //   // create an instance of HtmlCleaner
+  //   val tagNode = HtmlCleaner().clean(
+  //     htmlString
+  //   )
+  //   val doc = DomSerializer(
+  //     CleanerProperties()
+  //   ).createDOM(tagNode)
 
-    val xpath: XPath = XPathFactory.newInstance().newXPath()
+  //   val xpath: XPath = XPathFactory.newInstance().newXPath()
 
-    val str = xpath.evaluate(
-      xPathParser,
-      doc, XPathConstants.STRING
-    ) as String
+  //   val str = xpath.evaluate(
+  //     xPathParser,
+  //     doc, XPathConstants.STRING
+  //   ) as String
 
-    promise.resolve(str)
-  }
+  //   Log.d("Notification", str)
+  //   Log.d("Notification", "end test xpath")
+
+  //   promise.resolve(str)
+  // }
 
   @ReactMethod
   fun redirectToAppAdvancedSettings(promise: Promise) {
