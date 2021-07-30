@@ -36,10 +36,6 @@ function callActionListeners() {
       // What to do when user press on the bubble
     });
   });
-  DeviceEventEmitter.addListener('floating-dismoi-message-press', (e) => {
-    // What to do when user press on the message
-    return FloatingModule.hideFloatingDisMoiMessage().then(() => {});
-  });
 
   DeviceEventEmitter.addListener('URL_CLICK_LINK', (event) => {
     FloatingModule.hideFloatingDisMoiBubble().then(() =>
@@ -89,6 +85,9 @@ async function callMatchingContext(savedUrlMatchingContext) {
   const response = await fetch(
     matchingContextFetchApi + savedUrlMatchingContext
   );
+
+  console.log('_________________END CALL MATHING CONTEXT____________________');
+
   return response.json();
 }
 
@@ -114,9 +113,10 @@ function getNoticeIdsThatAreNotDeleted(contributors, noticesToShow) {
 
 let i = 0;
 let eventTimes = [];
+let packageName = '';
 
 const HeadlessTask = async (taskData) => {
-  console.log('HEADLESS TASK');
+  packageName = taskData.packageName;
 
   if (taskData.eventTime) {
     eventTimes.push(parseInt(taskData.eventTime));
@@ -126,6 +126,7 @@ const HeadlessTask = async (taskData) => {
     if (eventTimes.length === 2) {
       const eventTime = eventTimes[1] - eventTimes[0];
       if (eventTime < 10000) {
+        eventTimes = [];
         return;
       }
     }
@@ -136,9 +137,7 @@ const HeadlessTask = async (taskData) => {
 
     if (taskData.hide === 'true') {
       FloatingModule.hideFloatingDisMoiBubble().then(() => {
-        FloatingModule.hideFloatingDisMoiMessage().then(() => {
-          //eventTimes = [];
-        });
+        FloatingModule.hideFloatingDisMoiMessage().then(() => {});
       });
       return;
     }
@@ -161,6 +160,8 @@ const HeadlessTask = async (taskData) => {
             ).then((response) => response.json())
           )
         );
+        console.log('unique ids');
+        console.log(uniqueIds);
         if (notices.length > 0) {
           const noticesToShow = notices.map((result) => {
             const formattedDate = formatDate(result);
@@ -189,17 +190,21 @@ const HeadlessTask = async (taskData) => {
                   (noticeToShow) => noticeToShow.id === id
                 );
               });
-              FloatingModule.initializeBubblesManager().then(() => {
-                FloatingModule.showFloatingDisMoiBubble(
-                  10,
-                  1500,
-                  notices.length,
-                  eventMessageFromChromeURL
-                ).then(() => {
-                  noticeIds = [];
-                  eventTimes = [];
+              if (packageName === 'com.android.chrome') {
+                console.log('show bubble');
+                console.log(packageName);
+                FloatingModule.initializeBubblesManager().then(() => {
+                  FloatingModule.showFloatingDisMoiBubble(
+                    10,
+                    1500,
+                    notices.length,
+                    eventMessageFromChromeURL
+                  ).then(() => {
+                    noticeIds = [];
+                    eventTimes = [];
+                  });
                 });
-              });
+              }
             }
           });
         }

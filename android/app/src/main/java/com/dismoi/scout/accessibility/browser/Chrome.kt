@@ -6,13 +6,12 @@ import android.view.accessibility.AccessibilityNodeInfo
 import androidx.annotation.RequiresApi
 
 class Chrome(): Browser() {
-  var url: String? = ""
+  var _url: String? = ""
   var eventType: String? = ""
   var className: String? = ""
   var eventText: String? = ""
   var hide: String? = ""
   var eventTime: String? = ""
-  var _url: String = ""
 
   lateinit var parentNodeInfo: AccessibilityNodeInfo
 
@@ -35,10 +34,8 @@ class Chrome(): Browser() {
     }
   }
 
-  fun outsideChrome(): Boolean {
-    return parentNodeInfo.childCount > 0 &&
-      parentNodeInfo.className.toString() == "android.widget.FrameLayout" &&
-      parentNodeInfo.getChild(0).className.toString() == "android.view.View"
+  fun checkIfChrome(): Boolean {
+    return _packageName == "com.android.chrome"
   }
 
   fun chromeSearchBarEditingIsActivated(): Boolean {

@@ -16,10 +16,12 @@ import androidx.annotation.RequiresApi
 import com.dismoi.scout.accessibility.BackgroundModule.Companion.sendEventFromAccessibilityServicePermission
 import com.dismoi.scout.accessibility.browser.Chrome
 import com.facebook.react.HeadlessJsTaskService
+import android.util.Log
 
 class BackgroundService : AccessibilityService() {
   private var _hide: String? = ""
   private var _eventTime: String? = ""
+  private var _packageName: String? = ""
   val chrome: Chrome = Chrome()
 
   private val NOTIFICATION_TIMEOUT: Long = 500
@@ -31,6 +33,7 @@ class BackgroundService : AccessibilityService() {
       val myIntent = Intent(context, BackgroundEventService::class.java)
       val bundle = Bundle()
 
+      bundle.putString("packageName", _packageName)
       bundle.putString("url", chrome._url)
       bundle.putString("hide", _hide)
       bundle.putString("eventTime", _eventTime)
@@ -52,6 +55,7 @@ class BackgroundService : AccessibilityService() {
       AccessibilityEvent.TYPE_VIEW_TEXT_CHANGED -> return "TYPE_VIEW_TEXT_CHANGED"
       AccessibilityEvent.TYPE_VIEW_TEXT_SELECTION_CHANGED -> return "TYPE_VIEW_TEXT_SELECTION_CHANGED"
       AccessibilityEvent.TYPE_VIEW_ACCESSIBILITY_FOCUSED -> return "TYPE_VIEW_ACCESSIBILITY_FOCUSED"
+      AccessibilityEvent.TYPE_WINDOWS_CHANGED -> return "TYPE_WINDOWS_CHANGED"
     }
     return event.eventType.toString()
   }
@@ -71,12 +75,13 @@ class BackgroundService : AccessibilityService() {
       Represents the event of changing the content of a window and more specifically 
       the sub-tree rooted at the event's source
     */
-    info.eventTypes = AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED or AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED or AccessibilityEvent.TYPE_VIEW_ACCESSIBILITY_FOCUSED
+    info.eventTypes = AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED or AccessibilityEvent.TYPE_VIEW_ACCESSIBILITY_FOCUSED or AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED
 
-    /* 
+    //AccessibilityEvent.TYPE_WINDOWS_CHANGED or
+    /*
       info.packageNames is not set because we want to receive event from
       all packages
-    */
+     */
 
     info.feedbackType = AccessibilityServiceInfo.FEEDBACK_VISUAL
     info.flags = AccessibilityServiceInfo.FLAG_REPORT_VIEW_IDS
@@ -108,11 +113,7 @@ class BackgroundService : AccessibilityService() {
       info.getChild(0).className.toString() == "android.widget.EditText"
   }
 
-  fun checkIfChrome(packageName: String): Boolean {
-    return packageName == "com.android.chrome"
-  }
-
-  fun isLauncherActivated(packageName: String, parentNodeInfo: AccessibilityNodeInfo): Boolean {
+  fun isLauncherActivated(packageName: String): Boolean {
     return "com.android.launcher3" == packageName
   }
 
@@ -123,50 +124,61 @@ class BackgroundService : AccessibilityService() {
    */
   @RequiresApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
   override fun onAccessibilityEvent(event: AccessibilityEvent) {
-
     if (rootInActiveWindow == null) {
       return
     }
-    val packageName = event.packageName.toString()
-    val parentNodeInfo: AccessibilityNodeInfo = event.source ?: return
 
-    if (getEventType(event) == "TYPE_WINDOW_STATE_CHANGED") {
-      if (packageName.contains("com.google.android.inputmethod")) {
-        _hide = "true"
-        handler.post(runnableCode)
-        return
-      }
-    }
+    if (overlayIsActivated(applicationContext)) {
+      val packageName = event.packageName.toString()
 
-    if (isLauncherActivated(packageName, parentNodeInfo)) {
-      _hide = "true"
-      handler.post(runnableCode)
-      return
-    }
-
-    if (checkIfChrome(packageName)) {
-      chrome.parentNodeInfo = parentNodeInfo
-      chrome._packageName = packageName
-
-      if (getEventType(event) == "TYPE_WINDOW_STATE_CHANGED" || getEventType(event) == "TYPE_WINDOW_CONTENT_CHANGED") {
-        chrome.captureUrl()
-        if (chrome.chromeSearchBarEditingIsActivated()) {
+      if (getEventType(event) == "TYPE_WINDOW_STATE_CHANGED" && packageName != "com.android.chrome") {
+        if (packageName.contains("com.google.android.inputmethod") ||
+          packageName == "com.google.android.googlequicksearchbox" ||
+          packageName == "com.android.systemui"
+        ) {
+          _packageName = packageName
           _hide = "true"
           handler.post(runnableCode)
           return
         }
       }
 
-      if (getEventType(event) != "TYPE_WINDOW_STATE_CHANGED" && getEventType(event) != "TYPE_WINDOW_CONTENT_CHANGED") {
-        _eventTime = event.eventTime.toString()
-        _hide = "false"
+      if (isLauncherActivated(packageName)) {
+        _hide = "true"
+        _packageName = packageName
         handler.post(runnableCode)
+        return
       }
 
-      parentNodeInfo.recycle()
-    }
+      val parentNodeInfo: AccessibilityNodeInfo = event.source ?: return
 
-    return
+      chrome.parentNodeInfo = parentNodeInfo
+      chrome._packageName = packageName
+
+      if (chrome.checkIfChrome()) {
+        if (
+          getEventType(event) == "TYPE_WINDOW_STATE_CHANGED" ||
+          getEventType(event) == "TYPE_WINDOW_CONTENT_CHANGED"
+        ) {
+          chrome.captureUrl()
+          if (chrome.chromeSearchBarEditingIsActivated()) {
+            _hide = "true"
+            handler.post(runnableCode)
+            return
+          }
+        }
+        if (getEventType(event) == "TYPE_VIEW_ACCESSIBILITY_FOCUSED") {
+          _eventTime = event.eventTime.toString()
+          _hide = "false"
+          _packageName = packageName
+          handler.post(runnableCode)
+        }
+
+        parentNodeInfo.recycle()
+      }
+
+      return
+    }
   }
 
   override fun onInterrupt() {
