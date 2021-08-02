@@ -6,24 +6,23 @@ import android.content.Intent
 import android.content.ServiceConnection
 import android.os.IBinder
 import android.util.Log
-import com.dismoi.scout.floating.FloatingService.FloatingServiceBinder
 import com.dismoi.scout.floating.layout.Bubble
+import com.dismoi.scout.floating.layout.Layout
 import com.dismoi.scout.floating.layout.Message
+import com.dismoi.scout.floating.FloatingService.FloatingServiceBinder
 
 class Manager private constructor(private val context: Context) {
   private var bounded = false
-  private var bubblesService: FloatingService? = null
+  private var floatingService: FloatingService? = null
   private var trashLayoutResourceId = 0
   private var listener: OnCallback? = null
   private val disMoiServiceConnection: ServiceConnection = object : ServiceConnection {
     override fun onServiceConnected(name: ComponentName, service: IBinder) {
       val binder = service as FloatingServiceBinder
-      bubblesService = binder.service
+      floatingService = binder.service
       configureBubblesService()
       bounded = true
-      if (listener != null) {
-        listener!!.onInitialized()
-      }
+      listener?.onInitialized()
     }
 
     override fun onServiceDisconnected(name: ComponentName) {
@@ -32,7 +31,7 @@ class Manager private constructor(private val context: Context) {
   }
 
   private fun configureBubblesService() {
-    bubblesService!!.addTrash(trashLayoutResourceId)
+    floatingService!!.addTrash(trashLayoutResourceId)
   }
 
   fun initialize() {
@@ -47,39 +46,41 @@ class Manager private constructor(private val context: Context) {
     context.unbindService(disMoiServiceConnection)
   }
 
-  fun addDisMoiBubble(bubble: Bubble?, x: Int, y: Int) {
+  fun addDisMoiBubble(bubble: Layout?, x: Int, y: Int) {
     if (bounded) {
-      bubblesService!!.addDisMoiBubble(bubble!!, x, y)
+      floatingService!!.addDisMoiBubble(bubble as Bubble, x, y)
     }
   }
 
-  fun addDisMoiMessage(message: Message?, y: Int) {
+  fun addDisMoiMessage(message: Layout?, y: Int) {
     if (bounded) {
-      bubblesService!!.addDisMoiMessage(message, y)
+      floatingService!!.addDisMoiMessage(message as Message, y)
     }
   }
 
-  fun removeBubble(bubble: Bubble?) {
+  fun removeDisMoiBubble(bubble: Layout?) {
     if (bounded) {
-      bubblesService!!.removeBubble(bubble!!)
+      floatingService!!.removeBubble(bubble as Bubble?)
     }
   }
 
-  fun removeDisMoiMessage(message: Message?) {
+  fun removeDisMoiMessage(message: Layout?) {
     if (bounded) {
-      Log.d("Notification", "remove dismoi message")
-      bubblesService!!.removeMessage(message)
+      floatingService!!.removeMessage(message as Message)
     }
   }
 
   class Builder(context: Context) {
     private val disMoiManager: Manager
-    fun setInitializationCallback(listener: OnCallback?): Builder {
+    fun setInitializationCallback(listener: OnCallback): Builder {
       disMoiManager.listener = listener
       return this
     }
 
     fun setTrashLayout(trashLayoutResourceId: Int): Builder {
+      Log.d("Notification", "set trash layout")
+      Log.d("Notification", trashLayoutResourceId.toString())
+
       disMoiManager.trashLayoutResourceId = trashLayoutResourceId
       return this
     }

@@ -9,7 +9,6 @@ import android.os.Handler
 import android.os.Looper
 import android.util.AttributeSet
 import android.util.DisplayMetrics
-import android.util.Log
 import android.view.MotionEvent
 import android.view.WindowManager
 import com.dismoi.scout.R
@@ -57,8 +56,8 @@ class Bubble(context: Context, attrs: AttributeSet?) : Layout(context, attrs) {
   override fun onTouchEvent(event: MotionEvent): Boolean {
     when (event.action) {
       MotionEvent.ACTION_DOWN -> {
-        _initialX = viewParams!!.x
-        _initialY = viewParams!!.y
+        _initialX = getViewParams()!!.x
+        _initialY = getViewParams()!!.y
         _initialTouchX = event.rawX
         _initialTouchY = event.rawY
         playAnimationClickDown()
@@ -69,18 +68,18 @@ class Bubble(context: Context, attrs: AttributeSet?) : Layout(context, attrs) {
       MotionEvent.ACTION_MOVE -> {
         val x = _initialX + (event.rawX - _initialTouchX).toInt()
         val y = _initialY + (event.rawY - _initialTouchY).toInt()
-        viewParams!!.x = x
-        viewParams!!.y = y
-        windowManager!!.updateViewLayout(this, viewParams)
-        if (layoutCoordinator != null) {
-          layoutCoordinator!!.notifyBubblePositionChanged(this)
+        getViewParams()!!.x = x
+        getViewParams()!!.y = y
+        getWindowManager()!!.updateViewLayout(this, getViewParams());
+        if (getLayoutCoordinator() != null) {
+          getLayoutCoordinator()!!.notifyBubblePositionChanged(this, x, y);
         }
       }
       MotionEvent.ACTION_UP -> {
         goToWall()
-        if (layoutCoordinator != null) {
-          layoutCoordinator!!.notifyBubbleRelease(this)
-          playAnimationClickUp()
+        if (getLayoutCoordinator() != null) {
+          getLayoutCoordinator()!!.notifyBubbleRelease(this);
+          playAnimationClickUp();
         }
         if (System.currentTimeMillis() - _lastTouchDown < TOUCH_TIME_THRESHOLD) {
           if (_onBubbleClickListener != null) {
@@ -121,8 +120,8 @@ class Bubble(context: Context, attrs: AttributeSet?) : Layout(context, attrs) {
 
   private fun updateSize() {
     val metrics = DisplayMetrics()
-    windowManager!!.defaultDisplay.getMetrics(metrics)
-    val display = windowManager!!.defaultDisplay
+    _windowManager!!.getDefaultDisplay().getMetrics(metrics);
+    val display = getWindowManager()!!.getDefaultDisplay();
     val size = Point()
     display.getSize(size)
     _screenWidth = size.x - width
@@ -139,15 +138,15 @@ class Bubble(context: Context, attrs: AttributeSet?) : Layout(context, attrs) {
   fun goToWall() {
     if (_shouldStickToWall) {
       val middle = _screenWidth / 2
-      val nearestXWall = if (viewParams!!.x >= middle) _screenWidth.toFloat() else 0.toFloat()
-      _animator.start(nearestXWall, viewParams!!.y.toFloat())
+      val nearestXWall = if (getViewParams()!!.x >= middle) _screenWidth.toFloat() else 0.toFloat()
+      _animator.start(nearestXWall, getViewParams()!!.y.toFloat())
     }
   }
 
   private fun move(deltaX: Float, deltaY: Float) {
-    viewParams!!.x += deltaX.toInt()
-    viewParams!!.y += deltaY.toInt()
-    windowManager!!.updateViewLayout(this, viewParams)
+    getViewParams()!!.x += deltaX.toInt()
+    getViewParams()!!.y += deltaY.toInt()
+    _windowManager!!.updateViewLayout(this, getViewParams());
   }
 
   private inner class MoveAnimator : Runnable {
@@ -165,8 +164,8 @@ class Bubble(context: Context, attrs: AttributeSet?) : Layout(context, attrs) {
     override fun run() {
       if (rootView != null && rootView.parent != null) {
         val progress = Math.min(1f, (System.currentTimeMillis() - startingTime) / 400f)
-        val deltaX = (destinationX - viewParams!!.x) * progress
-        val deltaY = (destinationY - viewParams!!.y) * progress
+        val deltaX = (destinationX - getViewParams()!!.x) * progress
+        val deltaY = (destinationY - getViewParams()!!.y) * progress
         move(deltaX, deltaY)
         if (progress < 1) {
           handler.post(this)
@@ -185,7 +184,7 @@ class Bubble(context: Context, attrs: AttributeSet?) : Layout(context, attrs) {
 
   init {
     _animator = MoveAnimator()
-    windowManager = context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
+    _windowManager = context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
     initializeView()
   }
 }

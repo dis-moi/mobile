@@ -10,21 +10,13 @@ import 'moment/min/locales';
 
 let _notices = [];
 
-async function getNoticeIds(eventMessageFromChromeURL, matchingContexts, HTML) {
+async function getNoticeIds(eventMessageFromChromeURL, matchingContexts) {
   const noticeIds = [];
   for (const matchingContext of matchingContexts) {
     const addWWWForBuildingURL = `www.${eventMessageFromChromeURL}`;
 
     if (addWWWForBuildingURL.match(new RegExp(matchingContext.urlRegex, 'g'))) {
       if (matchingContext.xpath) {
-        const result = await Background.testWithXpath(
-          HTML,
-          matchingContext.xpath
-        );
-
-        if (result === 'true') {
-          noticeIds.push(matchingContext.noticeId);
-        }
         continue;
       }
       noticeIds.push(matchingContext.noticeId);
@@ -43,15 +35,6 @@ function callActionListeners() {
     ).then(() => {
       // What to do when user press on the bubble
     });
-  });
-  DeviceEventEmitter.addListener('floating-dismoi-message-press', (e) => {
-    // What to do when user press on the message
-    return FloatingModule.hideFloatingDisMoiMessage().then(() => {});
-  });
-
-  DeviceEventEmitter.addListener('floating-dismoi-bubble-remove', (e) => {
-    // What to do when user press on the message
-    console.log('FLOATING DISMOI BUBBLE REMOVE');
   });
 
   DeviceEventEmitter.addListener('URL_CLICK_LINK', (event) => {
@@ -99,26 +82,13 @@ let matchingContextFetchApi =
 async function callMatchingContext(savedUrlMatchingContext) {
   console.log('_________________CALL MATHING CONTEXT____________________');
 
-  return await fetch(matchingContextFetchApi + savedUrlMatchingContext)
-    .then((response) => {
-      console.log(
-        '_________________END CALL MATHING CONTEXT____________________'
-      );
-      return response.json();
-    })
-    .catch((error) => {
-      console.log('ERROR MATCHING CONTEXT');
-      console.log(error);
-    });
-}
+  const response = await fetch(
+    matchingContextFetchApi + savedUrlMatchingContext
+  );
 
-async function getHTMLOfCurrentChromeURL(eventMessageFromChromeURL) {
-  return await fetch(`https://www.${eventMessageFromChromeURL}`).then(function (
-    response
-  ) {
-    // The API call was successful!
-    return response.text();
-  });
+  console.log('_________________END CALL MATHING CONTEXT____________________');
+
+  return response.json();
 }
 
 function getNoticeIdsThatAreNotDeleted(contributors, noticesToShow) {
@@ -142,88 +112,105 @@ function getNoticeIdsThatAreNotDeleted(contributors, noticesToShow) {
 }
 
 let i = 0;
+let eventTimes = [];
+let packageName = '';
 
 const HeadlessTask = async (taskData) => {
-  if (i === 0) {
-    callActionListeners();
-    i++;
+  packageName = taskData.packageName;
+
+  if (taskData.eventTime) {
+    eventTimes.push(parseInt(taskData.eventTime));
   }
 
-  if (taskData.hide === 'true') {
-    FloatingModule.hideFloatingDisMoiBubble().then(() =>
-      FloatingModule.hideFloatingDisMoiMessage()
-    );
-    return;
-  }
-  SharedPreferences.getItem('url', async function (savedUrlMatchingContext) {
-    const res = await Promise.all([
-      await callMatchingContext(savedUrlMatchingContext),
-      await getHTMLOfCurrentChromeURL(taskData.url),
-    ]);
-    const matchingContexts = res[0];
-    const HTML = res[1];
-    const eventMessageFromChromeURL = taskData.url;
-    if (eventMessageFromChromeURL) {
-      let noticeIds = await getNoticeIds(
-        eventMessageFromChromeURL,
-        matchingContexts,
-        HTML
-      );
-      const uniqueIds = [...new Set(noticeIds)];
-
-      let notices = await Promise.all(
-        uniqueIds.map((noticeId) =>
-          fetch(
-            `https://notices.bulles.fr/api/v3/notices/${noticeId}`
-          ).then((response) => response.json())
-        )
-      );
-      if (notices.length > 0) {
-        const noticesToShow = notices.map((result) => {
-          const formattedDate = formatDate(result);
-
-          result.modified = formattedDate;
-          return result;
-        });
-
-        SharedPreferences.getAll(function (values) {
-          const contributors = [
-            ...new Set(
-              values
-                .map((result) => {
-                  if (result[0] !== 'url') {
-                    return JSON.parse(result[1]);
-                  }
-                })
-                .filter(Boolean)
-            ),
-          ];
-
-          const noticeIdNotDeleted = getNoticeIdsThatAreNotDeleted(
-            contributors,
-            noticesToShow
-          );
-
-          if (noticeIdNotDeleted.length > 0) {
-            _notices = noticeIdNotDeleted.map((id) => {
-              return noticesToShow.find(
-                (noticeToShow) => noticeToShow.id === id
-              );
-            });
-
-            FloatingModule.showFloatingDisMoiBubble(
-              10,
-              1500,
-              notices.length,
-              eventMessageFromChromeURL
-            ).then(() => {
-              noticeIds = [];
-            });
-          }
-        });
+  if (taskData.url) {
+    if (eventTimes.length === 2) {
+      const eventTime = eventTimes[1] - eventTimes[0];
+      if (eventTime < 10000) {
+        eventTimes = [];
+        return;
       }
     }
-  });
+    if (i === 0) {
+      callActionListeners();
+      i++;
+    }
+
+    if (taskData.hide === 'true') {
+      FloatingModule.hideFloatingDisMoiBubble().then(() => {
+        FloatingModule.hideFloatingDisMoiMessage().then(() => {});
+      });
+      return;
+    }
+    SharedPreferences.getItem('url', async function (savedUrlMatchingContext) {
+      const matchingContexts = await callMatchingContext(
+        savedUrlMatchingContext
+      );
+
+      const eventMessageFromChromeURL = taskData.url;
+      if (eventMessageFromChromeURL) {
+        let noticeIds = await getNoticeIds(
+          eventMessageFromChromeURL,
+          matchingContexts
+        );
+        const uniqueIds = [...new Set(noticeIds)];
+        let notices = await Promise.all(
+          uniqueIds.map((noticeId) =>
+            fetch(
+              `https://notices.bulles.fr/api/v3/notices/${noticeId}`
+            ).then((response) => response.json())
+          )
+        );
+        console.log('unique ids');
+        console.log(uniqueIds);
+        if (notices.length > 0) {
+          const noticesToShow = notices.map((result) => {
+            const formattedDate = formatDate(result);
+            result.modified = formattedDate;
+            return result;
+          });
+          SharedPreferences.getAll(function (values) {
+            const contributors = [
+              ...new Set(
+                values
+                  .map((result) => {
+                    if (result[0] !== 'url') {
+                      return JSON.parse(result[1]);
+                    }
+                  })
+                  .filter(Boolean)
+              ),
+            ];
+            const noticeIdNotDeleted = getNoticeIdsThatAreNotDeleted(
+              contributors,
+              noticesToShow
+            );
+            if (noticeIdNotDeleted.length > 0) {
+              _notices = noticeIdNotDeleted.map((id) => {
+                return noticesToShow.find(
+                  (noticeToShow) => noticeToShow.id === id
+                );
+              });
+              if (packageName === 'com.android.chrome') {
+                console.log('show bubble');
+                console.log(packageName);
+                FloatingModule.initializeBubblesManager().then(() => {
+                  FloatingModule.showFloatingDisMoiBubble(
+                    10,
+                    1500,
+                    notices.length,
+                    eventMessageFromChromeURL
+                  ).then(() => {
+                    noticeIds = [];
+                    eventTimes = [];
+                  });
+                });
+              }
+            }
+          });
+        }
+      }
+    });
+  }
 };
 
 export default HeadlessTask;

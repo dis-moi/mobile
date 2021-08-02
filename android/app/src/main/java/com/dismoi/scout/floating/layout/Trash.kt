@@ -21,12 +21,12 @@ class Trash : Layout {
   )
 
   override fun onAttachedToWindow() {
-    super.onAttachedToWindow()
+    super<Layout>.onAttachedToWindow()
     attachedToWindow = true
   }
 
   override fun onDetachedFromWindow() {
-    super.onDetachedFromWindow()
+    super<Layout>.onDetachedFromWindow()
     attachedToWindow = false
   }
 
@@ -40,7 +40,7 @@ class Trash : Layout {
         }
       }
     }
-    super.setVisibility(visibility)
+    super<Layout>.setVisibility(visibility)
   }
 
   fun applyMagnetism() {
