@@ -11,8 +11,6 @@ import com.facebook.react.ReactNativeHost
 import com.facebook.react.ReactPackage
 import com.facebook.soloader.SoLoader
 import java.lang.reflect.InvocationTargetException
-import `in`.sriraman.sharedpreferences.RNSharedPreferencesReactPackage
-
 
 class MainApplication : Application(), ReactApplication {
   private val mReactNativeHost: ReactNativeHost = object : ReactNativeHost(this) {

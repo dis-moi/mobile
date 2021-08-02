@@ -1,7 +1,6 @@
 package com.dismoi.scout.accessibility
 
 import android.content.Intent
-import android.util.Log
 import com.facebook.react.HeadlessJsTaskService
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.jstasks.HeadlessJsTaskConfig
