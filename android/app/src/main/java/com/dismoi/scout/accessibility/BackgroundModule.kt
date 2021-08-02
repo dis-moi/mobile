@@ -6,16 +6,9 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
-import android.util.Log
 import com.facebook.react.bridge.*
 import com.facebook.react.modules.core.DeviceEventManagerModule
-import org.htmlcleaner.CleanerProperties
-import org.htmlcleaner.DomSerializer
-import org.htmlcleaner.HtmlCleaner
 import javax.annotation.Nonnull
-import javax.xml.xpath.XPath
-import javax.xml.xpath.XPathConstants
-import javax.xml.xpath.XPathFactory
 
 class BackgroundModule(@Nonnull reactContext: ReactApplicationContext) :
   ReactContextBaseJavaModule(reactContext) {

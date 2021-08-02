@@ -1,7 +1,6 @@
 package com.dismoi.scout.accessibility.browser
 
 import android.os.Build
-import android.util.Log
 import android.view.accessibility.AccessibilityNodeInfo
 import androidx.annotation.RequiresApi
 

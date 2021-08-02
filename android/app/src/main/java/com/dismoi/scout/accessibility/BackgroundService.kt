@@ -16,7 +16,6 @@ import androidx.annotation.RequiresApi
 import com.dismoi.scout.accessibility.BackgroundModule.Companion.sendEventFromAccessibilityServicePermission
 import com.dismoi.scout.accessibility.browser.Chrome
 import com.facebook.react.HeadlessJsTaskService
-import android.util.Log
 
 class BackgroundService : AccessibilityService() {
   private var _hide: String? = ""
