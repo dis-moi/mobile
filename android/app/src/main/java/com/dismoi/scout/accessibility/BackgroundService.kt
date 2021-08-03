@@ -10,7 +10,6 @@ import android.content.Context
 import android.content.Intent
 import android.os.*
 import android.provider.Settings.canDrawOverlays
-import android.util.Log
 import android.view.accessibility.AccessibilityEvent
 import android.view.accessibility.AccessibilityNodeInfo
 import androidx.annotation.RequiresApi
@@ -124,15 +123,12 @@ class BackgroundService : AccessibilityService() {
 
     if (overlayIsActivated(applicationContext)) {
       val packageName = event.packageName.toString()
-      Log.d("Notification", packageName)
-      Log.d("Notification", getEventType(event).toString())
 
       if (getEventType(event) == "TYPE_WINDOW_STATE_CHANGED" && packageName != "com.android.chrome") {
         if (packageName.contains("com.google.android.inputmethod") ||
           packageName == "com.google.android.googlequicksearchbox" ||
           packageName == "com.android.systemui"
         ) {
-          Log.d("Notification", "Hide")
           _eventTime = event.eventTime.toString()
           _packageName = packageName
           _hide = "true"
