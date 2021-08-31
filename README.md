@@ -56,6 +56,17 @@ yarn start
 yarn run android
 ```
 
+## Release
+
+1. Increment `versionName` in `android/app/build.gradle`.
+> For example set version to `1.0.23`: `versionName "1.0.23"`
+
+2. Tag the commit accordingly and push it:
+```
+git tag 1.0.23
+git push origin --tags 
+```
+
 ## Contributing
 
 You’re welcome to help ! Please read the [**DisMoi** Contributing Guidelines](CONTRIBUTING.md).
