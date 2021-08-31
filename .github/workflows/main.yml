@@ -1,8 +1,8 @@
-name: Disribute debug build
+name: Distribute debug build
 on:
   push:
-    branches:
-      - main
+    tags:
+      - '*'
 
 jobs:
   distribute-debug-build:
