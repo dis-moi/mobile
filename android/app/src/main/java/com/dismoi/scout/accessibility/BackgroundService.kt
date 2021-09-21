@@ -1,74 +1,73 @@
 package com.dismoi.scout.accessibility
 
-/*
-  The configuration of an accessibility service is contained in the 
-  AccessibilityServiceInfo class
-*/
 import android.accessibilityservice.AccessibilityService
 import android.accessibilityservice.AccessibilityServiceInfo
+import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
-import android.os.*
+import android.content.ServiceConnection
+import android.os.Build
+import android.os.IBinder
 import android.provider.Settings.canDrawOverlays
 import android.util.Log
 import android.view.accessibility.AccessibilityEvent
-import android.view.accessibility.AccessibilityNodeInfo
 import androidx.annotation.RequiresApi
-import com.dismoi.scout.accessibility.BackgroundModule.Companion.sendEventFromAccessibilityServicePermission
-import com.dismoi.scout.accessibility.browser.Chrome
-import com.dismoi.scout.browser.Amazon
-import com.dismoi.scout.browser.Helpers
-import com.facebook.react.HeadlessJsTaskService
+import com.dismoi.scout.accessibility.browser.NoUrlInBrowserException
+import com.dismoi.scout.accessibility.browser.SupportedBrowserConfig
+import com.dismoi.scout.accessibility.browser.SupportedBrowsers
+import com.dismoi.scout.floating.FloatingService
+import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.channels.Channel.Factory.CONFLATED
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.consumeAsFlow
+import kotlinx.coroutines.flow.debounce
+import okhttp3.*
+import org.json.JSONArray
+import org.json.JSONObject
+import java.io.IOException
 
 class BackgroundService : AccessibilityService() {
-  private var _hide: String? = ""
-  private var _eventTime: String? = ""
-  private var _packageName: String? = ""
-  val chrome: Chrome = Chrome()
-
   private val TAG = "Accessibility"
+  private var bound: Boolean = false
+  private var floatingService: FloatingService? = null
+  private var jsonMatchingContexts: JSONArray = JSONArray("[]")
+  private var lastNotices: List<Int> = listOf()
+  private var eventsChannel: Channel<AccessibilityEvent> = Channel<AccessibilityEvent>(CONFLATED)
 
-  private val handler = Handler(Looper.getMainLooper())
-  private val runnableCode: Runnable = object : Runnable {
-    override fun run() {
-      val context = applicationContext
-      val myIntent = Intent(context, BackgroundEventService::class.java)
-      val bundle = Bundle()
+  private val disMoiServiceConnection = object : ServiceConnection {
+    override fun onServiceConnected(name: ComponentName, floatingServiceBinder: IBinder) {
+      val binder = floatingServiceBinder as FloatingService.FloatingServiceBinder
+      floatingService = binder.service
+      bound = true
+    }
 
-      bundle.putString("packageName", _packageName)
-      bundle.putString("url", chrome._url)
-      bundle.putString("hide", _hide)
-      bundle.putString("eventTime", _eventTime)
-
-      myIntent.putExtras(bundle)
-
-      context.startService(myIntent)
-      HeadlessJsTaskService.acquireWakeLockNow(context)
+    override fun onServiceDisconnected(name: ComponentName) {
+      bound = false
+      floatingService = null
     }
   }
 
-  private fun getEventType(event: AccessibilityEvent): String? {
-    when (event.eventType) {
-      AccessibilityEvent.TYPE_VIEW_CLICKED -> return "TYPE_VIEW_CLICKED"
-      AccessibilityEvent.TYPE_VIEW_FOCUSED -> return "TYPE_VIEW_FOCUSED"
-      AccessibilityEvent.TYPE_VIEW_SELECTED -> return "TYPE_VIEW_SELECTED"
-      AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED -> return "TYPE_WINDOW_STATE_CHANGED"
-      AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED -> return "TYPE_WINDOW_CONTENT_CHANGED"
-      AccessibilityEvent.TYPE_VIEW_TEXT_CHANGED -> return "TYPE_VIEW_TEXT_CHANGED"
-      AccessibilityEvent.TYPE_VIEW_TEXT_SELECTION_CHANGED -> return "TYPE_VIEW_TEXT_SELECTION_CHANGED"
-      AccessibilityEvent.TYPE_VIEW_ACCESSIBILITY_FOCUSED -> return "TYPE_VIEW_ACCESSIBILITY_FOCUSED"
-      AccessibilityEvent.TYPE_WINDOWS_CHANGED -> return "TYPE_WINDOWS_CHANGED"
+  @RequiresApi(Build.VERSION_CODES.N)
+  override fun onCreate() {
+    super.onCreate()
+
+    CoroutineScope(Dispatchers.Default).launch {
+      eventsChannel.consumeAsFlow().debounce(500L).collect {
+        matchContext(it)
+      }
     }
-    return event.eventType.toString()
+
+    // TODO clear coroutine on service stop
+    fetchMatchingContexts()
+
+    bindService(
+      Intent(applicationContext, FloatingService::class.java), disMoiServiceConnection, Context.BIND_AUTO_CREATE
+    )
   }
 
-  /* 
-    This system calls this method when it successfully connects to your accessibility service
-  */
-  // configure my service in there
   @RequiresApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
   override fun onServiceConnected() {
-
     val info = serviceInfo
     
     info.eventTypes = AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED or AccessibilityEvent.TYPE_VIEW_ACCESSIBILITY_FOCUSED or AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED
@@ -79,117 +78,152 @@ class BackgroundService : AccessibilityService() {
     this.serviceInfo = info
   }
 
-  private fun overlayIsActivated(applicationContext: Context): Boolean {
-    return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-      canDrawOverlays(applicationContext)
-    } else {
-      false
-    }
-  }
-
-  private fun isWindowChangeEvent(event: AccessibilityEvent): Boolean {
-    return AccessibilityEvent.eventTypeToString(event.eventType).contains("WINDOW")
-  }
-
-  private fun chromeSearchBarEditingIsActivated(info: AccessibilityNodeInfo): Boolean {
-    return info.childCount > 0 &&
-      info.className.toString() == "android.widget.FrameLayout" &&
-      info.getChild(0).className.toString() == "android.widget.EditText"
-  }
-
-  fun isLauncherActivated(packageName: String): Boolean {
-    return "com.android.launcher3" == packageName
-  }
-
-
-  /*
-    This method is called back by the system when it detects an 
-    AccessibilityEvent that matches the event filtering parameters 
-    specified by your accessibility service
-   */
-  @RequiresApi(30)
+  @RequiresApi(Build.VERSION_CODES.N)
   override fun onAccessibilityEvent(event: AccessibilityEvent) {
-    Log.d(TAG, "Event : ${getEventType(event)}, Package: ${event.packageName}, Source: ${event.source?.className.toString()}")
+    runBlocking { launch {
+      eventsChannel.send(event)
+    } }
+  }
+
+  @RequiresApi(Build.VERSION_CODES.N)
+  private fun matchContext(event: AccessibilityEvent) {
+    val eventType = AccessibilityEvent.eventTypeToString(event.eventType)
+    Log.d(TAG, "Event : ${eventType}")
+    Log.d(TAG, "Package: ${event.packageName}")
+
+    if (!canDrawOverlays(applicationContext)) return
 
     val root = rootInActiveWindow
+    val packageName = root?.packageName?.toString()
 
-    if (
-      root != null
-      && (root.packageName?.toString() == "com.android.chrome" || root.packageName?.toString() == "org.mozilla.firefox" )
-      && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O
-    ) {
-      Log.d(TAG, "Active window packageName : ${root.packageName}, className: ${root.className}")
-    } else {
-      Log.d(TAG, "Unknown window packageName : ${root?.packageName}, className: ${root?.className}")
+    if (root == null || packageName == null) {
+      hide()
       return
     }
 
-    val webview = Helpers.findWebview(root)
-    if (webview != null) {
-      Amazon.getProductTitle(webview)
+    if (packageName == "com.dismoi.scout") { // TODO extract
+      // We’re interacting with our own UI
+      return
     }
 
-    if (overlayIsActivated(applicationContext)) {applicationContext
-      val packageName = event.packageName?.toString() ?: "NO PACKAGE"
+    if (SupportedBrowsers.isSupported(packageName)) {
+      Log.d(TAG, "Supported window packageName : ${root.packageName}, className: ${root.className}")
+    } else {
+      Log.d(TAG, "Unknown window packageName : ${root.packageName}, className: ${root.className}")
+      hide()
+      return
+    }
 
-      if (getEventType(event) == "TYPE_WINDOW_STATE_CHANGED" && packageName != "com.android.chrome") {
-        if (packageName.contains("com.google.android.inputmethod") ||
-          packageName == "com.google.android.googlequicksearchbox" ||
-          packageName == "com.android.systemui"
-        ) {
-          _packageName = packageName
-          _hide = "true"
-          handler.post(runnableCode)
+    // we have a supported browser active ! Yay !
+    val activeBrowserConfig = SupportedBrowsers.find(packageName) as SupportedBrowserConfig
+
+    try {
+      val currentUrl = activeBrowserConfig.getCurrentUrlIn(root)
+
+      if (currentUrl == null) return
+
+      Log.d(TAG, "current URL is $currentUrl")
+
+      val matchingContexts = getContextsMatchingUrl(currentUrl)
+
+      Log.d(TAG, "found ${matchingContexts.size} contexts matching current url")
+
+      if (matchingContexts.size > 0) {
+
+        val noticesId =
+          matchingContexts
+            .filter { context -> !context.has("xpath") || context.isNull("xpath") } // TODO Use domain fields instead of xpath
+            .map { context -> context.getInt("noticeId") }
+            .distinct()
+
+        if (noticesId.size == lastNotices.size && noticesId.containsAll(lastNotices)) {
           return
         }
+
+        show(noticesId)
+      } else {
+        hide()
       }
+    } catch (e: NoUrlInBrowserException)
+    {
+      // When page is scrolled, the URL is hidden, but we may still be on the same page …
+    }
 
-      if (isLauncherActivated(packageName)) {
-        _hide = "true"
-        _packageName = packageName
-        handler.post(runnableCode)
-        return
-      }
+    // Just an example of code of how to search for a product name
+//    val webview = Helpers.findWebview(root)
+//    if (webview != null) {
+//      Amazon.getProductTitle(webview)
+//    }
+  }
 
-      val parentNodeInfo: AccessibilityNodeInfo = event.source ?: return
+  private fun hide() {
+    if (bound) {
+      lastNotices = listOf()
+      floatingService!!.hide()
+    }
 
-      chrome.parentNodeInfo = parentNodeInfo
-      chrome._packageName = packageName
+  }
 
-      if (chrome.checkIfChrome()) {
-        if (
-          getEventType(event) == "TYPE_WINDOW_STATE_CHANGED" ||
-          getEventType(event) == "TYPE_WINDOW_CONTENT_CHANGED"
-        ) {
-          chrome.captureUrl()
-          if (chrome.chromeSearchBarEditingIsActivated()) {
-            _hide = "true"
-            handler.post(runnableCode)
-            return
-          }
-        }
-        if (getEventType(event) == "TYPE_VIEW_ACCESSIBILITY_FOCUSED") {
-          _eventTime = event.eventTime.toString()
-          _hide = "false"
-          _packageName = packageName
-          handler.post(runnableCode)
-        }
-
-        parentNodeInfo.recycle()
-      }
-
-      return
+  @RequiresApi(Build.VERSION_CODES.N)
+  private fun show(noticesIds: List<Int>) {
+    if (bound) {
+      lastNotices = noticesIds
+      floatingService!!.showNotices(noticesIds)
     }
   }
 
-  override fun onInterrupt() {
-    sendEventFromAccessibilityServicePermission("false")
+  // TODO To be moved to repository
+  private fun fetchMatchingContexts() {
+    val matchingContextsEndpoint = "https://notices.bulles.fr/api/v3/matching-contexts" // TODO to be moved to env configuration
+    val request = Request.Builder().url(matchingContextsEndpoint).build()
+    val client = OkHttpClient()
+
+    client.newCall(request).enqueue(object: Callback {
+      override fun onFailure(call: Call, e: IOException) {
+        Log.d(TAG, "Failed to fetch : ${e.toString()}")
+      }
+
+      override fun onResponse(call: Call, response: Response) {
+        val body = response.body()?.string()
+        
+        jsonMatchingContexts = JSONArray(body)
+
+        Log.d(TAG, "Fetched ${jsonMatchingContexts.length()} matching contexts")
+      }
+    })
   }
 
-  override fun onDestroy() {
-    super<AccessibilityService>.onDestroy()
+  // TODO To be moved to a repository
+  private fun getContextsMatchingUrl(url: String): MutableList<JSONObject> {
+    val wwwUrl = "www.$url"
+    try {
+      val contextsMatchingUrl = mutableListOf<JSONObject>()
+      for (i in 0 until jsonMatchingContexts.length()) {
+        val aMatchingContext = jsonMatchingContexts.getJSONObject(i)
 
-    sendEventFromAccessibilityServicePermission("false")
-    handler.removeCallbacks(runnableCode)
+        if (aMatchingContext.has("urlRegex")) {
+          val regex = Regex(aMatchingContext.getString("urlRegex"))
+          if (!regex.matches(url) && !regex.matches(wwwUrl)) {
+            continue
+          }
+        }
+
+        if (aMatchingContext.has("excludeUrlRegex")) {
+          val excludeRegex = Regex(aMatchingContext.getString("excludeUrlRegex"))
+          if (excludeRegex.matches(url) || excludeRegex.matches(wwwUrl)) {
+            continue
+          }
+        }
+
+        contextsMatchingUrl.add(aMatchingContext)
+      }
+      return contextsMatchingUrl
+    }
+    catch (exception: Exception) {
+      Log.d(TAG, "oups : ${exception.toString()}")
+    }
+    return mutableListOf()
   }
+
+  override fun onInterrupt() {}
 }

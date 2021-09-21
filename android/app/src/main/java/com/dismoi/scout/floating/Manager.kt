@@ -6,9 +6,6 @@ import android.content.Intent
 import android.content.ServiceConnection
 import android.os.IBinder
 import android.util.Log
-import com.dismoi.scout.floating.layout.Bubble
-import com.dismoi.scout.floating.layout.Layout
-import com.dismoi.scout.floating.layout.Message
 import com.dismoi.scout.floating.FloatingService.FloatingServiceBinder
 
 class Manager private constructor(private val context: Context) {
@@ -16,11 +13,11 @@ class Manager private constructor(private val context: Context) {
   private var floatingService: FloatingService? = null
   private var trashLayoutResourceId = 0
   private var listener: OnCallback? = null
+
   private val disMoiServiceConnection: ServiceConnection = object : ServiceConnection {
     override fun onServiceConnected(name: ComponentName, service: IBinder) {
       val binder = service as FloatingServiceBinder
       floatingService = binder.service
-      configureBubblesService()
       bounded = true
       listener?.onInitialized()
     }
@@ -28,10 +25,6 @@ class Manager private constructor(private val context: Context) {
     override fun onServiceDisconnected(name: ComponentName) {
       bounded = false
     }
-  }
-
-  private fun configureBubblesService() {
-    floatingService!!.addTrash(trashLayoutResourceId)
   }
 
   fun initialize() {
@@ -44,30 +37,6 @@ class Manager private constructor(private val context: Context) {
 
   fun recycle() {
     context.unbindService(disMoiServiceConnection)
-  }
-
-  fun addDisMoiBubble(bubble: Layout?, x: Int, y: Int) {
-    if (bounded) {
-      floatingService!!.addDisMoiBubble(bubble as Bubble, x, y)
-    }
-  }
-
-  fun addDisMoiMessage(message: Layout?, y: Int) {
-    if (bounded) {
-      floatingService!!.addDisMoiMessage(message as Message, y)
-    }
-  }
-
-  fun removeDisMoiBubble(bubble: Layout?) {
-    if (bounded) {
-      floatingService!!.removeBubble(bubble as Bubble?)
-    }
-  }
-
-  fun removeDisMoiMessage(message: Layout?) {
-    if (bounded) {
-      floatingService!!.removeMessage(message as Message)
-    }
   }
 
   class Builder(context: Context) {

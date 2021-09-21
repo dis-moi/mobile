@@ -204,11 +204,11 @@ class FloatingModule(
   }
 
   private fun configureClickOnBubbleAction(bubbleDisMoiView: Bubble?) {
-    bubbleDisMoiView!!.setOnBubbleClickListener(object : OnBubbleClickListener {
-      override fun onBubbleClick(bubble: Bubble?) {
-        sendEventToReactNative("floating-dismoi-bubble-press", "")
-      }
-    })
+//    bubbleDisMoiView!!.setOnBubbleClickListener(object : OnBubbleClickListener {
+//      override fun onBubbleClick(bubble: Bubble?) {
+//        sendEventToReactNative("floating-dismoi-bubble-press", "")
+//      }
+//    })
   }
 
   private fun addNewFloatingDisMoiBubble(x: Int, y: Int, numberOfNotice: String) {

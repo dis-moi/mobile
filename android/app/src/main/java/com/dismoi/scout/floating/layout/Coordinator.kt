@@ -61,7 +61,7 @@ class Coordinator private constructor() {
   fun notifyBubbleRelease(bubble: Bubble) {
     if (_trashView != null) {
       if (checkIfBubbleIsOverTrash(bubble)) {
-        _bubblesService!!.removeBubble(bubble)
+//        _bubblesService!!.removeBubble(bubble)
       }
       _trashView!!.visibility = View.GONE
     }

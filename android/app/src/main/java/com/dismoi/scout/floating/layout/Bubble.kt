@@ -11,6 +11,7 @@ import android.util.AttributeSet
 import android.util.DisplayMetrics
 import android.view.MotionEvent
 import android.view.WindowManager
+import android.widget.TextView
 import com.dismoi.scout.R
 
 class Bubble(context: Context, attrs: AttributeSet?) : Layout(context, attrs) {
@@ -50,6 +51,11 @@ class Bubble(context: Context, attrs: AttributeSet?) : Layout(context, attrs) {
   override fun onAttachedToWindow() {
     super.onAttachedToWindow()
     playAnimation()
+  }
+
+  fun setCount(count: Int) {
+    var textView: TextView? = findViewById(R.id.number_of_notice)
+    textView?.text = count.toString()
   }
 
   @SuppressLint("ClickableViewAccessibility")
