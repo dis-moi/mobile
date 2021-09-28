@@ -130,17 +130,17 @@ class BackgroundService : AccessibilityService() {
 
       if (matchingContexts.size > 0) {
 
-        val noticesId =
+        val noticesIds =
           matchingContexts
             .filter { context -> !context.has("xpath") || context.isNull("xpath") } // TODO Use domain fields instead of xpath
             .map { context -> context.getInt("noticeId") }
             .distinct()
 
-        if (noticesId.size == lastNotices.size && noticesId.containsAll(lastNotices)) {
+        if (noticesIds.size == lastNotices.size && noticesIds.containsAll(lastNotices)) {
           return
         }
 
-        show(noticesId)
+        show(noticesIds)
       } else {
         hide()
       }
