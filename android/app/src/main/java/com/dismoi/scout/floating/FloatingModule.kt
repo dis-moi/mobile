@@ -195,7 +195,7 @@ class FloatingModule(
 
     configureCloseButton(messageDisMoiView)
 
-    messagesManager!!.addDisMoiMessage(messageDisMoiView!!, y)
+//    messagesManager!!.addDisMoiMessage(messageDisMoiView!!, y)
   }
 
   private fun configureNumberOfNoticeIcon(bubbleDisMoiView: Bubble?, numberOfNotice: String) {
@@ -221,19 +221,19 @@ class FloatingModule(
     configureClickOnBubbleAction(bubbleDisMoiView)
 
     bubbleDisMoiView!!.setShouldStickToWall(true)
-    bubblesManager!!.addDisMoiBubble(bubbleDisMoiView, x, y)
+//    bubblesManager!!.addDisMoiBubble(bubbleDisMoiView, x, y)
   }
 
   private fun removeDisMoiBubble() {
     if (bubbleDisMoiView != null) {
-      bubblesManager!!.removeDisMoiBubble(bubbleDisMoiView)
+//      bubblesManager!!.removeDisMoiBubble(bubbleDisMoiView)
       bubbleDisMoiView = null
     }
   }
 
   private fun removeDisMoiMessage() {
     if (messageDisMoiView != null) {
-      messagesManager!!.removeDisMoiMessage(messageDisMoiView)
+//      messagesManager!!.removeDisMoiMessage(messageDisMoiView)
       messageDisMoiView = null
     }
   }
