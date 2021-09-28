@@ -40,7 +40,7 @@ class MainApplication : Application(), ReactApplication {
   override fun onCreate() {
     super.onCreate()
     SoLoader.init(this, /* native exopackage */false)
-    initializeFlipper(this, reactNativeHost.reactInstanceManager)
+//    initializeFlipper(this, reactNativeHost.reactInstanceManager)
   }
 
   companion object {
