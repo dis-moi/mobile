@@ -95,6 +95,7 @@ class BackgroundService : AccessibilityService() {
 
     val root = rootInActiveWindow
     val packageName = root?.packageName?.toString()
+    Log.d(TAG, "Root Package: ${packageName}")
 
     if (root == null || packageName == null) {
       hide()

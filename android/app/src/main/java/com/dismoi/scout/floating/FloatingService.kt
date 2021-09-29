@@ -93,13 +93,11 @@ class FloatingService : Service() {
   }
 
   fun hide() {
-    if (state !== State.HIDDEN) {
-      Log.d(TAG, "Hide everything !")
-      hideBubble()
-      hideMessage()
-      hideTrash()
-      state = State.HIDDEN
-    }
+    Log.d(TAG, "Hide everything !")
+    hideBubble()
+    hideMessage()
+    hideTrash()
+    state = State.HIDDEN
   }
 
   @RequiresApi(Build.VERSION_CODES.O)
@@ -211,7 +209,10 @@ class FloatingService : Service() {
       WindowManager.LayoutParams.MATCH_PARENT,
       WindowManager.LayoutParams.WRAP_CONTENT,
       WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
-      WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN,
+      WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN
+        or WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
+        or WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL
+        or WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH,
       PixelFormat.TRANSPARENT
     )
     messageLayoutParams.gravity = Gravity.END
@@ -226,6 +227,11 @@ class FloatingService : Service() {
     messageView.visibility = View.GONE
     messageView.eventListener = object : Message.MessageViewListener {
       override fun onClose() {
+        hideMessage()
+        showBubble()
+      }
+
+      override fun onClickOutside() {
         hideMessage()
         showBubble()
       }

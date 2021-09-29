@@ -15,6 +15,7 @@ import android.text.style.URLSpan
 import android.util.AttributeSet
 import android.util.Log
 import android.view.LayoutInflater
+import android.view.MotionEvent
 import android.view.View
 import android.widget.ImageButton
 import android.widget.ImageView
@@ -108,6 +109,7 @@ class Message(context: Context, attrs: AttributeSet?) : Layout(context, attrs) {
 
   interface MessageViewListener {
     fun onClose()
+    fun onClickOutside()
   }
 
   override fun onViewAdded(child: View?) {
@@ -123,6 +125,15 @@ class Message(context: Context, attrs: AttributeSet?) : Layout(context, attrs) {
   override fun onAttachedToWindow() {
     super.onAttachedToWindow()
     playAnimation()
+  }
+
+  // TODO Use performClick ?
+  override fun onTouchEvent(event: MotionEvent?): Boolean {
+    if (event?.action == MotionEvent.ACTION_OUTSIDE) {
+      eventListener?.onClickOutside()
+    }
+
+    return super.onTouchEvent(event)
   }
 
   /**
