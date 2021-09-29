@@ -5,8 +5,6 @@ import android.app.Service
 import android.content.Context
 import android.graphics.BitmapFactory
 import android.os.Build
-import android.os.Handler
-import android.os.Looper
 import android.os.StrictMode
 import android.text.Html
 import android.text.SpannableStringBuilder
@@ -18,6 +16,7 @@ import android.util.AttributeSet
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
+import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.annotation.RequiresApi
@@ -31,6 +30,8 @@ import java.net.URL
 
 @RequiresApi(Build.VERSION_CODES.N)
 class Message(context: Context, attrs: AttributeSet?) : Layout(context, attrs) {
+  var eventListener: MessageViewListener? = null
+
   // TODO have correct class for notices
   var notices: List<MutableLiveData<JSONObject>> = listOf()
     set (notices) {
@@ -39,12 +40,11 @@ class Message(context: Context, attrs: AttributeSet?) : Layout(context, attrs) {
       carouselView.pageCount = notices.size
     }
 
-  private var inflater: LayoutInflater = context.getSystemService(Service.LAYOUT_INFLATER_SERVICE) as LayoutInflater
-
   // TODO Fix fonts usage
   //    val type = Typeface.createFromAsset(context.assets, "fonts/Helvetica.ttf")
   //    val typeBold = Typeface.createFromAsset(context.assets, "fonts/Helvetica-Bold.ttf")
 
+  private var inflater: LayoutInflater = context.getSystemService(Service.LAYOUT_INFLATER_SERVICE) as LayoutInflater
   private var carouselListener = ViewListener { position ->
     val liveNotice = notices[position]
 
@@ -106,11 +106,18 @@ class Message(context: Context, attrs: AttributeSet?) : Layout(context, attrs) {
     noticeView
   }
 
+  interface MessageViewListener {
+    fun onClose()
+  }
+
   override fun onViewAdded(child: View?) {
     super.onViewAdded(child)
 
     val carouselView = findViewById<CarouselView>(R.id.carouselView)
     carouselView.setViewListener(carouselListener)
+
+    findViewById<ImageButton>(R.id.close)
+      .setOnClickListener(OnClickListener { eventListener?.onClose() })
   }
 
   override fun onAttachedToWindow() {

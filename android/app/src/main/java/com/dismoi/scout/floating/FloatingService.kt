@@ -190,13 +190,15 @@ class FloatingService : Service() {
     }
   }
 
-  private fun showBubble(count: Int) {
-    Log.d(TAG, "Showing Bubble for $count")
-    handler.post {
-      bubbleView.setCount(count)
+  private fun showBubble(count: Int? = null) {
+    if (count != null) {
+      Log.d(TAG, "Showing Bubble for $count")
+      handler.post {
+        bubbleView.setCount(count)
+      }
     }
     showView(bubbleView)
-    state = State.BUBBLE
+    state = State.BUBBLE // TODO Maybe we don’t need this, now that we just use Visibility ?
   }
 
   private fun hideBubble() {
@@ -222,6 +224,12 @@ class FloatingService : Service() {
     messageView = inflater.inflate(R.layout.highlight_messages, null, false) as Message
     messageView.setViewParams(messageLayoutParams)
     messageView.visibility = View.GONE
+    messageView.eventListener = object : Message.MessageViewListener {
+      override fun onClose() {
+        hideMessage()
+        showBubble()
+      }
+    }
     windowManager.addView(messageView, messageLayoutParams)
   }
 
@@ -274,7 +282,6 @@ class FloatingService : Service() {
     client.newCall(request).enqueue(object : Callback {
       override fun onFailure(call: Call, e: IOException) {
         Log.d(TAG, "Failed calling $noticeEndpoint")
-
       }
 
       @RequiresApi(Build.VERSION_CODES.N)

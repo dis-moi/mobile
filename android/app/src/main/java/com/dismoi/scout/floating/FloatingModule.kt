@@ -218,21 +218,16 @@ class FloatingModule(
     configureNumberOfNoticeIcon(bubbleDisMoiView, numberOfNotice)
 
     configureClickOnBubbleAction(bubbleDisMoiView)
-
-    bubbleDisMoiView!!.setShouldStickToWall(true)
-//    bubblesManager!!.addDisMoiBubble(bubbleDisMoiView, x, y)
   }
 
   private fun removeDisMoiBubble() {
     if (bubbleDisMoiView != null) {
-//      bubblesManager!!.removeDisMoiBubble(bubbleDisMoiView)
       bubbleDisMoiView = null
     }
   }
 
   private fun removeDisMoiMessage() {
     if (messageDisMoiView != null) {
-//      messagesManager!!.removeDisMoiMessage(messageDisMoiView)
       messageDisMoiView = null
     }
   }

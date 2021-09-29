@@ -20,43 +20,30 @@ class Bubble(context: Context, attrs: AttributeSet?) : Layout(context, attrs) {
   private var _initialTouchY = 0f
   private var _initialX = 0
   private var _initialY = 0
-  private var _onBubbleRemoveListener: OnBubbleRemoveListener? = null
   private var _BubbleListener: BubbleListener? = null
   private var _lastTouchDown: Long = 0
-  private val _animator: MoveAnimator
+  private val _animator: MoveAnimator = MoveAnimator()
   private var _screenWidth = 0
   private var _shouldStickToWall = true
 
-  fun setOnBubbleRemoveListener(listener: OnBubbleRemoveListener?) {
-    _onBubbleRemoveListener = listener
+  interface BubbleListener {
+    fun onBubbleMove()
+    fun onBubbleClick(bubble: Bubble?)
+    fun onBubbleDrop()
   }
 
-  fun setOnBubbleClickListener(listener: BubbleListener?) {
-    _BubbleListener = listener
+  companion object {
+    private const val TOUCH_TIME_THRESHOLD = 150
   }
 
-  fun setShouldStickToWall(shouldStick: Boolean) {
-    _shouldStickToWall = shouldStick
-  }
-
-  fun notifyBubbleRemoved() {
-    if (_onBubbleRemoveListener != null) {
-      _onBubbleRemoveListener!!.onBubbleRemoved(this)
-    }
-  }
-
-  private fun initializeView() {
+  init {
+    _windowManager = context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
     isClickable = true
   }
 
   override fun onAttachedToWindow() {
     super.onAttachedToWindow()
     playAnimation()
-  }
-
-  fun setCount(count: Int) {
-    var textView: TextView? = findViewById(R.id.number_of_notice)
-    textView?.text = count.toString()
   }
 
   @SuppressLint("ClickableViewAccessibility")
@@ -97,6 +84,25 @@ class Bubble(context: Context, attrs: AttributeSet?) : Layout(context, attrs) {
     return super.onTouchEvent(event)
   }
 
+  fun setOnBubbleClickListener(listener: BubbleListener?) {
+    _BubbleListener = listener
+  }
+
+  fun setCount(count: Int) {
+    var textView: TextView? = findViewById(R.id.number_of_notice)
+    textView?.text = count.toString()
+  }
+
+  fun magnetismOnTrash(trash: Trash) {
+    val trashContentView: View = trash.getChildAt(0)
+    val trashCenterX = trashContentView.left + trashContentView.measuredWidth / 2
+    val trashCenterY = trashContentView.top + trashContentView.measuredHeight / 2
+    _viewParams?.x = trashCenterX - measuredWidth / 2
+    _viewParams?.y = trashCenterY - measuredHeight / 2
+    // TODO Use setX and setY instead ?
+    _windowManager!!.updateViewLayout(this, _viewParams)
+  }
+
   private fun playAnimation() {
     if (!isInEditMode) {
       val animator = AnimatorInflater
@@ -133,17 +139,7 @@ class Bubble(context: Context, attrs: AttributeSet?) : Layout(context, attrs) {
     _screenWidth = size.x - width
   }
 
-  interface OnBubbleRemoveListener {
-    fun onBubbleRemoved(bubble: Bubble?)
-  }
-
-  interface BubbleListener {
-    fun onBubbleMove()
-    fun onBubbleClick(bubble: Bubble?)
-    fun onBubbleDrop()
-  }
-
-  fun goToWall() {
+  private fun goToWall() {
     if (_shouldStickToWall) {
       val middle = _screenWidth / 2
       val nearestXWall = if (getViewParams()!!.x >= middle) _screenWidth.toFloat() else 0.toFloat()
@@ -155,16 +151,6 @@ class Bubble(context: Context, attrs: AttributeSet?) : Layout(context, attrs) {
     getViewParams()!!.x += deltaX.toInt()
     getViewParams()!!.y += deltaY.toInt()
     _windowManager!!.updateViewLayout(this, getViewParams());
-  }
-
-  fun magnetismOnTrash(trash: Trash) {
-    val trashContentView: View = trash.getChildAt(0)
-    val trashCenterX = trashContentView.left + trashContentView.measuredWidth / 2
-    val trashCenterY = trashContentView.top + trashContentView.measuredHeight / 2
-    _viewParams?.x = trashCenterX - measuredWidth / 2
-    _viewParams?.y = trashCenterY - measuredHeight / 2
-    // TODO Use setX and setY instead ?
-    _windowManager!!.updateViewLayout(this, _viewParams)
   }
 
   private inner class MoveAnimator : Runnable {
@@ -194,15 +180,5 @@ class Bubble(context: Context, attrs: AttributeSet?) : Layout(context, attrs) {
     fun stop() {
       handler.removeCallbacks(this)
     }
-  }
-
-  companion object {
-    private const val TOUCH_TIME_THRESHOLD = 150
-  }
-
-  init {
-    _animator = MoveAnimator()
-    _windowManager = context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
-    initializeView()
   }
 }
