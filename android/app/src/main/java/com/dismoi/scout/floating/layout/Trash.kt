@@ -56,6 +56,7 @@ class Trash : Layout {
       if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
         vibrator.vibrate(VibrationEffect.createOneShot(200, VibrationEffect.DEFAULT_AMPLITUDE))
       } else {
+        // TODO Deprecation
         @Suppress("DEPRECATION")
         vibrator.vibrate(200)
       }

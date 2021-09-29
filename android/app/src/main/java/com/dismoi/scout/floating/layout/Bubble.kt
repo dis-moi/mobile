@@ -10,6 +10,7 @@ import android.os.Looper
 import android.util.AttributeSet
 import android.util.DisplayMetrics
 import android.view.MotionEvent
+import android.view.View
 import android.view.WindowManager
 import android.widget.TextView
 import com.dismoi.scout.R
@@ -20,7 +21,7 @@ class Bubble(context: Context, attrs: AttributeSet?) : Layout(context, attrs) {
   private var _initialX = 0
   private var _initialY = 0
   private var _onBubbleRemoveListener: OnBubbleRemoveListener? = null
-  private var _onBubbleClickListener: OnBubbleClickListener? = null
+  private var _BubbleListener: BubbleListener? = null
   private var _lastTouchDown: Long = 0
   private val _animator: MoveAnimator
   private var _screenWidth = 0
@@ -30,8 +31,8 @@ class Bubble(context: Context, attrs: AttributeSet?) : Layout(context, attrs) {
     _onBubbleRemoveListener = listener
   }
 
-  fun setOnBubbleClickListener(listener: OnBubbleClickListener?) {
-    _onBubbleClickListener = listener
+  fun setOnBubbleClickListener(listener: BubbleListener?) {
+    _BubbleListener = listener
   }
 
   fun setShouldStickToWall(shouldStick: Boolean) {
@@ -72,25 +73,24 @@ class Bubble(context: Context, attrs: AttributeSet?) : Layout(context, attrs) {
         _animator.stop()
       }
       MotionEvent.ACTION_MOVE -> {
+        // TODO Needed ?
         val x = _initialX + (event.rawX - _initialTouchX).toInt()
         val y = _initialY + (event.rawY - _initialTouchY).toInt()
         getViewParams()!!.x = x
         getViewParams()!!.y = y
-        getWindowManager()!!.updateViewLayout(this, getViewParams());
-        if (getLayoutCoordinator() != null) {
-          getLayoutCoordinator()!!.notifyBubblePositionChanged(this, x, y);
-        }
+        getWindowManager()!!.updateViewLayout(this, getViewParams()); // TODO Use setX/setY ?
+
+        _BubbleListener?.onBubbleMove()
       }
       MotionEvent.ACTION_UP -> {
-        goToWall()
-        if (getLayoutCoordinator() != null) {
-          getLayoutCoordinator()!!.notifyBubbleRelease(this);
-          playAnimationClickUp();
-        }
+        goToWall() // TODO Everytime ?
+        playAnimationClickUp();
+
+        // TODO if (event.eventTime - event.downTime)
         if (System.currentTimeMillis() - _lastTouchDown < TOUCH_TIME_THRESHOLD) {
-          if (_onBubbleClickListener != null) {
-            _onBubbleClickListener!!.onBubbleClick(this)
-          }
+          _BubbleListener?.onBubbleClick(this)
+        } else {
+          _BubbleListener?.onBubbleDrop()
         }
       }
     }
@@ -137,8 +137,10 @@ class Bubble(context: Context, attrs: AttributeSet?) : Layout(context, attrs) {
     fun onBubbleRemoved(bubble: Bubble?)
   }
 
-  interface OnBubbleClickListener {
+  interface BubbleListener {
+    fun onBubbleMove()
     fun onBubbleClick(bubble: Bubble?)
+    fun onBubbleDrop()
   }
 
   fun goToWall() {
@@ -153,6 +155,16 @@ class Bubble(context: Context, attrs: AttributeSet?) : Layout(context, attrs) {
     getViewParams()!!.x += deltaX.toInt()
     getViewParams()!!.y += deltaY.toInt()
     _windowManager!!.updateViewLayout(this, getViewParams());
+  }
+
+  fun magnetismOnTrash(trash: Trash) {
+    val trashContentView: View = trash.getChildAt(0)
+    val trashCenterX = trashContentView.left + trashContentView.measuredWidth / 2
+    val trashCenterY = trashContentView.top + trashContentView.measuredHeight / 2
+    _viewParams?.x = trashCenterX - measuredWidth / 2
+    _viewParams?.y = trashCenterY - measuredHeight / 2
+    // TODO Use setX and setY instead ?
+    _windowManager!!.updateViewLayout(this, _viewParams)
   }
 
   private inner class MoveAnimator : Runnable {

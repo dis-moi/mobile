@@ -8,15 +8,6 @@ import android.widget.FrameLayout
 open class Layout : FrameLayout {
   var _windowManager: WindowManager? = null
   var _viewParams: WindowManager.LayoutParams? = null
-  var _layoutCoordinator: Coordinator? = null
-
-  open fun setLayoutCoordinator(layoutCoordinator: Coordinator?) {
-    _layoutCoordinator = layoutCoordinator
-  }
-
-  open fun getLayoutCoordinator(): Coordinator? {
-    return _layoutCoordinator
-  }
 
   open fun setWindowManager(windowManager: WindowManager?) {
     _windowManager = windowManager

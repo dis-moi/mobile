@@ -22,7 +22,6 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import com.dismoi.scout.R
 import com.dismoi.scout.floating.layout.Bubble
-import com.dismoi.scout.floating.layout.Bubble.OnBubbleClickListener
 import com.dismoi.scout.floating.layout.Message
 import com.facebook.react.bridge.*
 import com.facebook.react.modules.core.DeviceEventManagerModule.RCTDeviceEventEmitter

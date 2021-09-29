@@ -85,7 +85,10 @@ class FloatingService : Service() {
       liveNotice
     }
 
-    messageView.notices = liveNotices
+    handler.post {
+      messageView.notices = liveNotices
+    }
+
     showBubble(noticesIds.size)
   }
 
@@ -118,48 +121,82 @@ class FloatingService : Service() {
     buildLayoutParamsForBubble()
     bubbleView = inflater.inflate(R.layout.bubble, null, false) as Bubble
     bubbleView.setViewParams(bubbleLayoutParams)
-    bubbleView.setOnBubbleClickListener(object : Bubble.OnBubbleClickListener {
-      override fun onBubbleClick(bubble: Bubble?) {
-        onBubbleClick()
-      }
-    })
+    bubbleView.setOnBubbleClickListener(bubbleListener)
+    bubbleView.visibility = View.GONE
+    windowManager.addView(bubbleView, bubbleLayoutParams)
   }
 
-  private fun showView(view: View, layoutParams: WindowManager.LayoutParams)
-  {
-    handler.post {
-      try {
-        windowManager.addView(view, layoutParams)
-      } catch (exception: IllegalArgumentException) {
-        Log.d("FloatingService", "${view.id} already in window : $exception : ${exception.stackTrace}")
-      } catch (exception: IllegalStateException) {
-        Log.d("FloatingService", "${view.id} already in window : $exception : ${exception.stackTrace}")
+  private val bubbleListener : Bubble.BubbleListener = object : Bubble.BubbleListener {
+    override fun onBubbleMove() {
+      showTrash()
+      if (isBubbleOverTrash()) {
+        trashView.applyMagnetism()
+        trashView.vibrate()
+        bubbleView.magnetismOnTrash(trashView)
+      } else {
+        trashView.releaseMagnetism()
       }
+    }
+
+    override fun onBubbleClick(bubble: Bubble?) {
+      showMessage()
+      hideBubble()
+    }
+
+    override fun onBubbleDrop() {
+      if (isBubbleOverTrash()) {
+        hideTrash()
+        hideBubble()
+      } else {
+        hideTrash()
+      }
+    }
+  }
+
+  private fun isBubbleOverTrash(): Boolean {
+    if (trashView.visibility == View.VISIBLE) {
+      val trashContentView = trashView.getChildAt(0)
+      val trashWidth = trashContentView.measuredWidth
+      val trashHeight = trashContentView.measuredHeight
+      val trashLeft = trashContentView.left - trashWidth / 2
+      val trashRight = trashContentView.left + trashWidth + trashWidth / 2
+      val trashTop = trashContentView.top - trashHeight / 2
+      val trashBottom = trashContentView.top + trashHeight + trashHeight / 2
+      val bubbleWidth = bubbleView.measuredWidth
+      val bubbleHeight = bubbleView.measuredHeight
+      val bubbleLeft = bubbleView._viewParams!!.x
+      val bubbleRight = bubbleLeft + bubbleWidth
+      val bubbleTop = bubbleView._viewParams!!.y
+      val bubbleBottom = bubbleTop + bubbleHeight
+      if (
+        bubbleLeft >= trashLeft && bubbleRight <= trashRight
+        && bubbleTop >= trashTop && bubbleBottom <= trashBottom
+      ) {
+        return true
+      }
+    }
+    return false
+  }
+
+  private fun showView(view: View) {
+    handler.post {
+      view.visibility = View.VISIBLE
     }
   }
 
   private fun removeView(view: View) {
     handler.post {
-      try {
-        windowManager.removeView(view)
-      } catch (exception: IllegalArgumentException) {
-        Log.d("FloatingService", "${view.id} not in view")
-      } catch (exception: IllegalStateException) {
-        Log.d("FloatingService", "${view.id} not in view")
-      }
+      view.visibility = View.GONE
     }
   }
 
   private fun showBubble(count: Int) {
     Log.d(TAG, "Showing Bubble for $count")
-    bubbleView.setCount(count)
-    showView(bubbleView, bubbleLayoutParams)
+    handler.post {
+      bubbleView.setCount(count)
+    }
+    showView(bubbleView)
     state = State.BUBBLE
-  }
-
-  private fun onBubbleClick() {
-    showMessage()
-    hideBubble()
   }
 
   private fun hideBubble() {
@@ -183,11 +220,13 @@ class FloatingService : Service() {
   private fun createMessageView() {
     buildLayoutParamsForMessage()
     messageView = inflater.inflate(R.layout.highlight_messages, null, false) as Message
-    messageView.setViewParams(bubbleLayoutParams)
+    messageView.setViewParams(messageLayoutParams)
+    messageView.visibility = View.GONE
+    windowManager.addView(messageView, messageLayoutParams)
   }
 
   private fun showMessage() {
-    showView(messageView, messageLayoutParams)
+    showView(messageView)
     state = State.MESSAGE
   }
 
@@ -215,10 +254,11 @@ class FloatingService : Service() {
     trashView.setViewParams(trashLayoutParams)
     trashView.visibility = View.GONE
     inflater.inflate(R.layout.bubble_trash, trashView, true)
+    windowManager.addView(trashView, trashLayoutParams)
   }
 
   private fun showTrash() {
-    showView(trashView, trashLayoutParams)
+    showView(trashView)
   }
 
   private fun hideTrash() {

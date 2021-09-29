@@ -5,6 +5,8 @@ import android.app.Service
 import android.content.Context
 import android.graphics.BitmapFactory
 import android.os.Build
+import android.os.Handler
+import android.os.Looper
 import android.os.StrictMode
 import android.text.Html
 import android.text.SpannableStringBuilder
@@ -33,8 +35,8 @@ class Message(context: Context, attrs: AttributeSet?) : Layout(context, attrs) {
   var notices: List<MutableLiveData<JSONObject>> = listOf()
     set (notices) {
       val carouselView = findViewById<CarouselView>(R.id.carouselView)
-      carouselView.pageCount = notices.size
       field = notices
+      carouselView.pageCount = notices.size
     }
 
   private var inflater: LayoutInflater = context.getSystemService(Service.LAYOUT_INFLATER_SERVICE) as LayoutInflater
@@ -50,7 +52,7 @@ class Message(context: Context, attrs: AttributeSet?) : Layout(context, attrs) {
     val noticeView = inflater.inflate(R.layout.message, null)
 
     val noticeObserver = Observer<JSONObject> { noticeContent ->
-      if (liveNotice.value == null) {
+      if (noticeContent == null) {
         return@Observer
       }
 
