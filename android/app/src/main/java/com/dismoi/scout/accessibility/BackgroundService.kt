@@ -2,10 +2,7 @@ package com.dismoi.scout.accessibility
 
 import android.accessibilityservice.AccessibilityService
 import android.accessibilityservice.AccessibilityServiceInfo
-import android.content.ComponentName
-import android.content.Context
-import android.content.Intent
-import android.content.ServiceConnection
+import android.content.*
 import android.os.Build
 import android.os.IBinder
 import android.provider.Settings.canDrawOverlays
@@ -26,6 +23,10 @@ import okhttp3.*
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.IOException
+
+interface SavedContributor {
+  val id: String
+}
 
 class BackgroundService : AccessibilityService() {
   private val TAG = "Accessibility"
@@ -54,12 +55,11 @@ class BackgroundService : AccessibilityService() {
 
     CoroutineScope(Dispatchers.Default).launch {
       eventsChannel.consumeAsFlow().debounce(500L).collect {
+        fetchMatchingContexts()
+
         matchContext(it)
       }
     }
-
-    // TODO clear coroutine on service stop
-    fetchMatchingContexts()
 
     bindService(
       Intent(applicationContext, FloatingService::class.java), disMoiServiceConnection, Context.BIND_AUTO_CREATE
@@ -175,18 +175,31 @@ class BackgroundService : AccessibilityService() {
 
   // TODO To be moved to repository
   private fun fetchMatchingContexts() {
-    val matchingContextsEndpoint = "https://notices.bulles.fr/api/v3/matching-contexts" // TODO to be moved to env configuration
+    val prefs = getSharedPreferences("wit_player_shared_preferences", Context.MODE_PRIVATE)
+    val matchingContextsQueryString = prefs.getString("url", "")
+    val matchingContextsEndpoint: String = "https://notices.bulles.fr/api/v3/matching-contexts?$matchingContextsQueryString"
+
+    // TODO URL should be composed here
+//    val allPrefs = prefs.all as Map<String, SavedContributor>
+//    val subscribedContributorsId = allPrefs.values.map { it.id }
+//    val matchingContextsEndpoint = // TODO endpoint to be moved to env configuration
+//      "https://notices.bulles.fr/api/v3/matching-contexts?contributors[]=${
+//        subscribedContributorsId.joinToString("&contributors[]=")
+//      }"
+
+    Log.d(TAG, "Fetching URL $matchingContextsEndpoint")
+
     val request = Request.Builder().url(matchingContextsEndpoint).build()
     val client = OkHttpClient()
 
-    client.newCall(request).enqueue(object: Callback {
+    client.newCall(request).enqueue(object : Callback {
       override fun onFailure(call: Call, e: IOException) {
         Log.d(TAG, "Failed to fetch : ${e.toString()}")
       }
 
       override fun onResponse(call: Call, response: Response) {
         val body = response.body()?.string()
-        
+
         jsonMatchingContexts = JSONArray(body)
 
         Log.d(TAG, "Fetched ${jsonMatchingContexts.length()} matching contexts")
